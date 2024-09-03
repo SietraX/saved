@@ -59,7 +59,7 @@ _Key Conventions_
 
 - always use mock/data.ts for initial data development
 
-- When creating or editing a code line always provide path of the file
+- Always predict an origin file for new codeblocks
 
 - when importing instead of using .. use @
 
