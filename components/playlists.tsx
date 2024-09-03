@@ -1,19 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
 export const Playlists = () => {
   const [playlists, setPlaylists] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const fetchPlaylists = async () => {
+      if (status !== 'authenticated') return;
+      
       try {
-        const response = await fetch('/api/youtube/playlists');
-        if (!response.ok) {
-          throw new Error('Failed to fetch playlists');
-        }
+        const response = await fetch('/api/youtube/playlists', {
+          headers: {
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        });
+        if (!response.ok) throw new Error('Failed to fetch playlists');
         const data = await response.json();
         setPlaylists(data.items || []);
       } catch (error) {
@@ -25,8 +31,10 @@ export const Playlists = () => {
     };
 
     fetchPlaylists();
-  }, []);
+  }, [session, status]);
 
+  if (status === 'loading') return <div>Loading session...</div>;
+  if (status === 'unauthenticated') return <div>Please sign in to view playlists.</div>;
   if (isLoading) return <div>Loading playlists...</div>;
   if (error) return <div>{error}</div>;
 

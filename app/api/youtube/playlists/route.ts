@@ -1,21 +1,16 @@
-import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import { getAuthenticatedYoutube } from '@/lib/youtube';
-import { Session } from 'next-auth';
 
-interface ExtendedSession extends Session {
-  accessToken?: string;
-}
+export async function GET(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-export async function GET() {
-  const session = await getServerSession() as ExtendedSession;
-  if (!session?.accessToken) {
+  if (!token?.accessToken) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const youtube = getAuthenticatedYoutube(session.accessToken);
-
   try {
+    const youtube = getAuthenticatedYoutube(token.accessToken as string);
     const response = await youtube.playlists.list({
       part: ['snippet', 'contentDetails'],
       mine: true,
