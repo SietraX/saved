@@ -29,11 +29,14 @@ export const Navigation = () => {
       <div className="flex items-center space-x-4">
         {status === "authenticated" ? (
           <>
+            <Link href="/saved-collections">
+              <Button variant="ghost">Saved Collections</Button>
+            </Link>
             <Link
               href="/collections"
               className={pathname === "/collections" ? "font-bold" : ""}
             >
-              Collections
+              YT Collections
             </Link>
             <Button onClick={() => signOut()} variant="outline">
               Logout

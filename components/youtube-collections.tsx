@@ -8,7 +8,7 @@ import { WatchLater } from "./watch-later";
 export const YouTubeCollections = () => {
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold mb-4">Your YouTube Collections</h1>
+      <h1 className="text-2xl font-bold mb-4">Your Collections</h1>
       <Tabs defaultValue="playlists">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="playlists">Playlists</TabsTrigger>
