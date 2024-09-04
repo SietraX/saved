@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const youtube = google.youtube({ version: "v3", auth: oauth2Client });
 
     const response = await youtube.playlists.list({
-      part: ["snippet", "status"],
+      part: ["snippet", "status", "contentDetails"],
       mine: true,
       maxResults: 50,
     });
