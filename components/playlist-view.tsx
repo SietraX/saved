@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -47,7 +45,6 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
   const [playlist, setPlaylist] = useState<PlaylistDetails | null>(null);
   const [videos, setVideos] = useState<PlaylistVideo[]>([]);
   const [sortOrder, setSortOrder] = useState("dateAddedNewest");
-  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchPlaylistDetails = async () => {
@@ -71,7 +68,14 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
   }, [playlistId]);
 
   const handleSortChange = (value: string) => {
-    setSortOrder(value);
+    setSortOrder(
+      value as
+        | "dateAddedNewest"
+        | "dateAddedOldest"
+        | "mostPopular"
+        | "datePublishedNewest"
+        | "datePublishedOldest"
+    );
     // Implement sorting logic here
   };
 

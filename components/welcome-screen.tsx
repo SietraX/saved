@@ -1,9 +1,3 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { useSession, signIn, signOut } from "next-auth/react";
-
 export const WelcomeScreen = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">

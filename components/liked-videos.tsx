@@ -11,7 +11,7 @@ type Video = {
   snippet: {
     title: string;
     thumbnails: {
-      medium: { 
+      medium: {
         url: string;
         height: number;
         width: number;
@@ -19,7 +19,7 @@ type Video = {
     };
   };
   status: {
-    uploadStatus: string;
+    uploadStatus: "processed" | "failed" | "rejected" | "uploaded";
   };
 };
 
