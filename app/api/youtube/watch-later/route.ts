@@ -18,15 +18,18 @@ export async function GET(req: NextRequest) {
       auth: oauth2Client
     });
 
-    const response = await youtube.videos.list({
-      part: ['snippet', 'status'],
-      myRating: 'like',
+    console.log('Fetching Watch Later videos...');
+    const response = await youtube.playlistItems.list({
+      part: ['snippet', 'contentDetails'],
+      playlistId: 'WL',  // 'WL' is a special ID for the Watch Later playlist
       maxResults: 50
     });
 
+    console.log('Watch Later response:', JSON.stringify(response.data, null, 2));
+
     return NextResponse.json(response.data);
   } catch (error) {
-    console.error('Error in YouTube liked videos API:', error);
+    console.error('Error in YouTube watch later API:', error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
