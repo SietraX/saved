@@ -4,14 +4,22 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { VideoModal } from "@/components/video-modal";
 
 type Video = {
   id: string;
   snippet: {
     title: string;
     thumbnails: {
-      medium: { url: string };
+      medium: { 
+        url: string;
+        height: number;
+        width: number;
+      };
     };
+  };
+  status: {
+    uploadStatus: string;
   };
 };
 
@@ -22,6 +30,7 @@ export const LikedVideos = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { data: session, status } = useSession();
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLikedVideos = async () => {
@@ -52,7 +61,16 @@ export const LikedVideos = () => {
   }, [searchTerm, videos]);
 
   const handleVideoClick = (videoId: string) => {
-    window.open(`https://www.youtube.com/watch?v=${videoId}`, "_blank");
+    setSelectedVideoId(videoId);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedVideoId(null);
+  };
+
+  const isShort = (video: Video) => {
+    const thumbnail = video.snippet.thumbnails.medium;
+    return thumbnail.height > thumbnail.width;
   };
 
   if (status === "loading" || isLoading) return <div>Loading...</div>;
@@ -60,34 +78,45 @@ export const LikedVideos = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Input
         type="text"
         placeholder="Search liked videos..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full"
+        className="w-full mb-6"
       />
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 sm:gap-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {filteredVideos.map((video) => (
           <Card 
             key={video.id} 
-            className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+            className="youtube-card cursor-pointer hover:shadow-lg transition-shadow flex flex-col"
             onClick={() => handleVideoClick(video.id)}
           >
-            <div className="aspect-w-16 aspect-h-9">
+            <div className={`relative ${isShort(video) ? 'aspect-[9/16]' : 'aspect-video'}`}>
               <img
                 src={video.snippet.thumbnails.medium.url}
                 alt={video.snippet.title}
-                className="object-cover w-full h-full"
+                className="object-cover w-full h-full rounded-t-lg"
               />
+              {isShort(video) && (
+                <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                  Short
+                </div>
+              )}
             </div>
-            <CardContent className="p-2">
-              <h3 className="text-xs font-medium line-clamp-2">{video.snippet.title}</h3>
+            <CardContent className="p-3 flex-grow">
+              <h3 className="text-sm font-medium line-clamp-2">{video.snippet.title}</h3>
             </CardContent>
           </Card>
         ))}
       </div>
+      <VideoModal
+        isOpen={!!selectedVideoId}
+        onClose={handleCloseModal}
+        videoId={selectedVideoId || ""}
+        isShort={selectedVideoId ? isShort(videos.find(v => v.id === selectedVideoId)!) : false}
+      />
     </div>
   );
 };

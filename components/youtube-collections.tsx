@@ -113,8 +113,8 @@ export const YouTubeCollections = () => {
   );
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold sm:text-2xl">Your YouTube Collections</h1>
+    <div className="space-y-6 p-4">
+      <h1 className="text-2xl font-bold sm:text-3xl">Your YouTube Collections</h1>
       <Input
         type="text"
         placeholder="Search collections..."
@@ -123,13 +123,13 @@ export const YouTubeCollections = () => {
         className="w-full"
       />
       <Tabs defaultValue="playlists" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="playlists">Playlists</TabsTrigger>
           <TabsTrigger value="liked">Liked Videos</TabsTrigger>
           <TabsTrigger value="watchLater">Watch Later</TabsTrigger>
         </TabsList>
         <TabsContent value="playlists">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredPlaylists.map((playlist) => (
               <Card
                 key={playlist.id}
@@ -146,9 +146,9 @@ export const YouTubeCollections = () => {
                     {playlist.contentDetails?.itemCount || 0} videos
                   </div>
                 </div>
-                <CardContent className="p-2">
-                  <h3 className="text-sm font-medium line-clamp-2">{playlist.snippet.title}</h3>
-                  <div className="flex items-center text-xs text-gray-500 mt-1">
+                <CardContent className="p-4">
+                  <h3 className="text-sm font-medium line-clamp-2 mb-2">{playlist.snippet.title}</h3>
+                  <div className="flex items-center text-xs text-gray-500">
                     {getPrivacyStatusIcon(playlist.status?.privacyStatus || "public")}
                     <span className="capitalize">{playlist.status?.privacyStatus || "public"}</span>
                   </div>

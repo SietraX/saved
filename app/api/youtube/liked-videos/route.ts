@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     });
 
     const response = await youtube.videos.list({
-      part: ['snippet'],
+      part: ['snippet', 'status'],
       myRating: 'like',
       maxResults: 50
     });
