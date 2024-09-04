@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { YouTubeCollections } from "@/components/youtube-collections";
 
 export default function CollectionsPage() {

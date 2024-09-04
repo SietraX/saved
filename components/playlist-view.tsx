@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MoreHorizontal, Play, Shuffle, GripVertical } from "lucide-react";
+import { VideoModal } from "@/components/video-modal";
 
 type PlaylistVideo = {
   id: string;
@@ -45,6 +46,7 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
   const [playlist, setPlaylist] = useState<PlaylistDetails | null>(null);
   const [videos, setVideos] = useState<PlaylistVideo[]>([]);
   const [sortOrder, setSortOrder] = useState("dateAddedNewest");
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPlaylistDetails = async () => {
@@ -77,6 +79,14 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
         | "datePublishedOldest"
     );
     // Implement sorting logic here
+  };
+
+  const handleVideoClick = (videoId: string) => {
+    setSelectedVideoId(videoId);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedVideoId(null);
   };
 
   if (!playlist) return <div>Loading...</div>;
@@ -143,7 +153,8 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
           {videos.map((video) => (
             <div
               key={video.id}
-              className="flex items-center gap-2 p-2 hover:bg-gray-100"
+              className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleVideoClick(video.id)}
             >
               <GripVertical className="cursor-move" />
               <img
@@ -168,6 +179,12 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
           ))}
         </div>
       </div>
+      <VideoModal
+        isOpen={!!selectedVideoId}
+        onClose={handleCloseModal}
+        videoId={selectedVideoId || ""}
+        isShort={false}
+      />
     </div>
   );
 };
