@@ -1,13 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 export const Navigation = () => {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
 
   return (
     <nav className="flex justify-between items-center p-4 bg-gray-100">
@@ -27,16 +39,7 @@ export const Navigation = () => {
               Logout
             </Button>
           </>
-        ) : (
-          <Button
-            onClick={() => {
-              console.log("Login button clicked");
-              signIn("google");
-            }}
-          >
-            Login with Google
-          </Button>
-        )}
+        ) : null}
       </div>
     </nav>
   );
