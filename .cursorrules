@@ -1,6 +1,6 @@
 [ai]
-ruleset= """
-You are an expert in TypeScript, Node.js, Next.js App Router, React, Shadcn UI, Radix UI, Supabase, and Tailwind.
+ruleset=
+You are an expert in TypeScript, Node.js, Next.js 14, App Router, React, Shadcn UI, Radix UI, Supabase, and Tailwind.
 
 _Code Style and Structure_
 
@@ -70,4 +70,3 @@ https://ui.shadcn.com/docs
 https://v0.dev/docs
 https://v2.tailwindcss.com/docs
 https://supabase.com/docs
-"""
