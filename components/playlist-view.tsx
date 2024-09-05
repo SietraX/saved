@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { MoreHorizontal, Play, Shuffle, GripVertical } from "lucide-react";
 import { VideoModal } from "@/components/video-modal";
+import Image from 'next/image';
 
 type PlaylistVideo = {
   id: string;
@@ -31,7 +32,11 @@ type PlaylistDetails = {
   snippet: {
     title: string;
     description: string;
-    thumbnails: { medium: { url: string } };
+    thumbnails?: {
+      medium?: {
+        url?: string;
+      };
+    };
     channelTitle: string;
   };
   status: {
@@ -89,6 +94,10 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
     setSelectedVideoId(null);
   };
 
+  const getImageUrl = (playlist: PlaylistDetails | null) => {
+    return playlist?.snippet.thumbnails?.medium?.url || '/placeholder-image.jpg';
+  };
+
   if (!playlist) return <div>Loading...</div>;
 
   return (
@@ -96,11 +105,15 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
       <div className="md:w-1/3">
         <Card>
           <CardContent className="p-4">
-            <img
-              src={playlist.snippet.thumbnails.medium.url}
-              alt={playlist.snippet.title}
-              className="w-full mb-4"
-            />
+            <div className="relative aspect-video mb-4">
+              <Image
+                src={getImageUrl(playlist)}
+                alt={playlist.snippet.title}
+                layout="fill"
+                objectFit="cover"
+                className="rounded-t-lg"
+              />
+            </div>
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-xl font-bold">{playlist.snippet.title}</h2>
               <Button variant="ghost" size="icon">
@@ -157,11 +170,14 @@ export const PlaylistView = ({ playlistId }: { playlistId: string }) => {
               onClick={() => handleVideoClick(video.id)}
             >
               <GripVertical className="cursor-move" />
-              <img
-                src={video.snippet.thumbnails.default.url}
-                alt={video.snippet.title}
-                className="w-24"
-              />
+              <div className="relative w-24 h-18">
+                <Image
+                  src={video.snippet.thumbnails.default.url}
+                  alt={video.snippet.title}
+                  layout="fill"
+                  objectFit="cover"
+                />
+              </div>
               <div className="flex-1">
                 <h3 className="font-medium">{video.snippet.title}</h3>
                 <p className="text-sm text-gray-500">

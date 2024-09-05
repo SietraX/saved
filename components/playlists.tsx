@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Lock, Globe, Eye } from "lucide-react";
+import Image from 'next/image';
 
 type PrivacyStatus = "public" | "unlisted" | "private";
 interface Playlist {
@@ -79,10 +80,12 @@ export const Playlists = () => {
             onClick={() => handlePlaylistClick(playlist.id)}
           >
             <div className="relative aspect-video">
-              <img
+              <Image
                 src={playlist.snippet.thumbnails.medium.url}
                 alt={playlist.snippet.title}
-                className="object-cover w-full h-full rounded-t-lg"
+                layout="fill"
+                objectFit="cover"
+                className="rounded-t-lg"
               />
               <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
                 {playlist.contentDetails.itemCount} videos
