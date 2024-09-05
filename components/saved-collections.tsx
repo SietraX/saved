@@ -4,6 +4,7 @@ import { useState, useEffect, KeyboardEvent, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { PlaylistView } from "@/components/playlist-view";
 import { Plus, MoreVertical, Pen, Trash, Check, X } from "lucide-react";
 import {
   DropdownMenu,
@@ -34,6 +35,7 @@ export const SavedCollections = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCollections();
@@ -128,7 +130,15 @@ export const SavedCollections = () => {
     }
   };
 
+  const handleViewCollection = (collectionId: string) => {
+    setSelectedCollectionId(collectionId);
+  };
+
   const sortedCollections = useMemo(() => sortCollections([...collections]), [collections]);
+
+  if (selectedCollectionId) {
+    return <PlaylistView playlistId={selectedCollectionId} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -208,7 +218,7 @@ export const SavedCollections = () => {
             </CardContent>
             <CardFooter className="flex justify-between">
               <p>0 videos</p>
-              <Button variant="outline">View Collection</Button>
+              <Button variant="outline" onClick={() => handleViewCollection(collection.id)}>View Collection</Button>
             </CardFooter>
           </Card>
         ))}

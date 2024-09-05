@@ -11,7 +11,7 @@ export function HomeClient() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/collections");
+      router.push("/");
     }
   }, [status, router]);
 
