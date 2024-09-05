@@ -5,9 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const WatchLater = () => {
   const { data: session } = useSession();
 
-  if (!session) {
-    return <div>Please sign in to view your Watch Later list.</div>;
-  }
+  // Remove the check for session
 
   return (
     <div className="container mx-auto p-4">

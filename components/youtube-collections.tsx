@@ -6,6 +6,8 @@ import { Playlists } from "./playlists";
 import { WatchLater } from "./watch-later";
 
 export const YouTubeCollections = () => {
+  // No changes needed here as it doesn't have explicit auth checks
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold mb-4">Your Collections</h1>

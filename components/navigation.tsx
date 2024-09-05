@@ -1,21 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
 
 export const Navigation = () => {
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
 
   if (status === "loading") {
     return <div>Loading...</div>;
@@ -38,11 +30,15 @@ export const Navigation = () => {
             >
               YT Collections
             </Link>
-            <Button onClick={() => signOut()} variant="outline">
+            <Button onClick={() => signOut({ callbackUrl: "/" })} variant="outline">
               Logout
             </Button>
           </>
-        ) : null}
+        ) : (
+          <Button onClick={() => signIn("google", { callbackUrl: "/collections" })} variant="outline">
+            Sign In
+          </Button>
+        )}
       </div>
     </nav>
   );
