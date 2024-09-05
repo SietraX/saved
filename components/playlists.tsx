@@ -38,7 +38,7 @@ export const Playlists = () => {
     fetcher
   );
 
-  const filteredPlaylists = data?.items.filter((playlist) =>
+  const filteredPlaylists = data?.items?.filter((playlist) =>
     playlist.snippet.title.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
@@ -59,7 +59,8 @@ export const Playlists = () => {
 
   if (status === "loading" || isLoading) return <div>Loading...</div>;
   if (status === "unauthenticated") return <div>Please sign in to view playlists.</div>;
-  if (error) return <div>Error loading playlists</div>;
+  if (error) return <div>Error loading playlists: {error.message}</div>;
+  if (!data || !data.items) return <div>No playlists found.</div>;
 
   return (
     <div className="container mx-auto p-4">
