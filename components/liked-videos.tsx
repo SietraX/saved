@@ -74,7 +74,6 @@ export const LikedVideos = () => {
   };
 
   if (status === "loading" || isLoading) return <div>Loading...</div>;
-  if (status === "unauthenticated") return <div>Please sign in to view liked videos.</div>;
   if (error) return <div>{error}</div>;
 
   return (

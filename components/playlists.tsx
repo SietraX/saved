@@ -58,7 +58,6 @@ export const Playlists = () => {
   };
 
   if (status === "loading" || isLoading) return <div>Loading...</div>;
-  if (status === "unauthenticated") return <div>Please sign in to view playlists.</div>;
   if (error) return <div>Error loading playlists: {error.message}</div>;
   if (!data || !data.items) return <div>No playlists found.</div>;
 
