@@ -5,6 +5,9 @@ const nextConfig = {
       {
         hostname: "*.googleusercontent.com",
       },
+      {
+        hostname: "i.ytimg.com",
+      },
     ],
   },
 };

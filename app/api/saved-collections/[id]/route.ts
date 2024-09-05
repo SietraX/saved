@@ -56,3 +56,27 @@ export async function DELETE(
 
   return NextResponse.json({ success: true });
 }
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+  if (!token?.sub) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const { data, error } = await supabase
+    .from("saved_collections")
+    .select("*")
+    .eq("id", params.id)
+    .eq("user_id", token.sub)
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
+}

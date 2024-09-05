@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { VideoModal } from "@/components/video-modal";
+import Image from 'next/image';
 
 type Video = {
   id: string;
@@ -93,10 +94,12 @@ export const LikedVideos = () => {
             onClick={() => handleVideoClick(video.id)}
           >
             <div className={`relative ${isShort(video) ? 'aspect-[9/16]' : 'aspect-video'}`}>
-              <img
+              <Image
                 src={video.snippet.thumbnails.medium.url}
                 alt={video.snippet.title}
-                className="object-cover w-full h-full rounded-t-lg"
+                layout="fill"
+                objectFit="cover"
+                className="rounded-t-lg"
               />
               {isShort(video) && (
                 <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">

@@ -15,11 +15,11 @@ export const WelcomeScreen = () => {
         Manage your playlists, liked videos, and more!
       </p>
       {status === "unauthenticated" ? (
-        <Button onClick={() => signIn("google", { callbackUrl: "/collections" })}>
+        <Button onClick={() => signIn("google", { callbackUrl: "/saved-collections" })}>
           Sign in with Google
         </Button>
       ) : status === "authenticated" ? (
-        <Link href="/collections">
+        <Link href="/saved-collections">
           <Button>Go to Collections</Button>
         </Link>
       ) : null}

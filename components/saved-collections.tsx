@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useRouter } from 'next/navigation';
 
 interface SavedCollection {
   id: string;
@@ -30,6 +31,8 @@ interface SavedCollection {
 }
 
 export const SavedCollections = () => {
+  const router = useRouter(); // Move this to the top level of the component
+
   const [collections, setCollections] = useState<SavedCollection[]>([]);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -131,14 +134,10 @@ export const SavedCollections = () => {
   };
 
   const handleViewCollection = (collectionId: string) => {
-    setSelectedCollectionId(collectionId);
+    router.push(`/saved-playlist/${collectionId}`);
   };
 
   const sortedCollections = useMemo(() => sortCollections([...collections]), [collections]);
-
-  if (selectedCollectionId) {
-    return <PlaylistView playlistId={selectedCollectionId} />;
-  }
 
   return (
     <div className="space-y-6">
