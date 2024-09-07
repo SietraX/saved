@@ -1,9 +1,17 @@
-import AuthWrapper from "@/components/auth-wrapper";
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-export default function ProtectedLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthWrapper>{children}</AuthWrapper>;
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect('/');
+  }
+
+  return <>{children}</>;
 }

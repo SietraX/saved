@@ -44,7 +44,7 @@ export const Playlists = () => {
   ) || [];
 
   const handlePlaylistClick = (playlistId: string) => {
-    router.push(`/playlist/${playlistId}`);
+    router.push(`/playlists/${playlistId}`);
   };
 
   const getPrivacyIcon = (status: PrivacyStatus) => {

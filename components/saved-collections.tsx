@@ -4,7 +4,6 @@ import { useState, useEffect, KeyboardEvent, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { PlaylistView } from "@/components/playlist-view";
 import { Plus, MoreVertical, Pen, Trash, Check, X } from "lucide-react";
 import {
   DropdownMenu,
@@ -134,7 +133,7 @@ export const SavedCollections = () => {
   };
 
   const handleViewCollection = (collectionId: string) => {
-    router.push(`/saved-playlist/${collectionId}`);
+    router.push(`/saved-collections/${collectionId}`);
   };
 
   const sortedCollections = useMemo(() => sortCollections([...collections]), [collections]);

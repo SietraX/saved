@@ -19,14 +19,17 @@ export const Navigation = () => {
         SAVED
       </Link>
       <div className="flex items-center space-x-4">
+        <Link href="/billing">
+          <Button variant="ghost">Billing</Button>
+        </Link>
         {status === "authenticated" ? (
           <>
             <Link href="/saved-collections">
               <Button variant="ghost">Saved Collections</Button>
             </Link>
             <Link
-              href="/collections"
-              className={pathname === "/collections" ? "font-bold" : ""}
+              href="/playlists"
+              className={pathname.startsWith("/playlists") || pathname.startsWith("/liked-videos") || pathname.startsWith("/watch-later") ? "font-bold" : ""}
             >
               YT Collections
             </Link>
@@ -35,7 +38,7 @@ export const Navigation = () => {
             </Button>
           </>
         ) : (
-          <Button onClick={() => signIn("google", { callbackUrl: "/collections" })} variant="outline">
+          <Button onClick={() => signIn("google", { callbackUrl: "/playlists" })} variant="outline">
             Sign In
           </Button>
         )}
