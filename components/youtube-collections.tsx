@@ -28,18 +28,23 @@ export const YouTubeCollections = () => {
       case "watchLater":
         router.push("/watch-later");
         break;
+      default:
+        router.push("/playlists");
     }
   };
 
-  const playlistId = pathname.split('/').pop();
-  const isPlaylistView = pathname.includes('/playlists/') && playlistId !== 'playlists';
+  const playlistId = pathname.split("/").pop();
+  const isPlaylistView =
+    pathname.includes("/playlists/") && playlistId !== "playlists";
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold mb-4">Your Collections</h1>
       <Tabs value={getActiveTab()} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="playlists">Playlists</TabsTrigger>
+          <TabsTrigger value="playlists" onClick={() => handleTabChange("playlists")}>
+            Playlists
+          </TabsTrigger>
           <TabsTrigger value="liked">Liked Videos</TabsTrigger>
           <TabsTrigger value="watchLater">Watch Later</TabsTrigger>
         </TabsList>
