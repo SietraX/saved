@@ -31,6 +31,9 @@ export const YouTubeCollections = () => {
     }
   };
 
+  const playlistId = pathname.split('/').pop();
+  const isPlaylistView = pathname.includes('/playlists/') && playlistId !== 'playlists';
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold mb-4">Your Collections</h1>
@@ -41,7 +44,11 @@ export const YouTubeCollections = () => {
           <TabsTrigger value="watchLater">Watch Later</TabsTrigger>
         </TabsList>
         <TabsContent value="playlists">
-          <Playlists />
+          {isPlaylistView ? (
+            <PlaylistView playlistId={playlistId!} type="youtube" />
+          ) : (
+            <Playlists />
+          )}
         </TabsContent>
         <TabsContent value="liked">
           <PlaylistView playlistId="liked" type="liked" />

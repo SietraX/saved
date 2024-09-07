@@ -19,6 +19,9 @@ export const Navigation = () => {
         SAVED
       </Link>
       <div className="flex items-center space-x-4">
+        <Link href="/billing">
+          <Button variant="ghost">Billing</Button>
+        </Link>
         {status === "authenticated" ? (
           <>
             <Link href="/saved-collections">
@@ -35,7 +38,7 @@ export const Navigation = () => {
             </Button>
           </>
         ) : (
-          <Button onClick={() => signIn("google", { callbackUrl: "/saved-collections" })} variant="outline">
+          <Button onClick={() => signIn("google", { callbackUrl: "/playlists" })} variant="outline">
             Sign In
           </Button>
         )}

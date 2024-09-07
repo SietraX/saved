@@ -133,7 +133,7 @@ export const SavedCollections = () => {
   };
 
   const handleViewCollection = (collectionId: string) => {
-    router.push(`/saved-collection/${collectionId}`);
+    router.push(`/saved-collections/${collectionId}`);
   };
 
   const sortedCollections = useMemo(() => sortCollections([...collections]), [collections]);
