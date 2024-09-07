@@ -1,10 +1,5 @@
-import Link from "next/link";
-import { YouTubeCollections } from "@/components/youtube-collections";
+import { redirect } from 'next/navigation';
 
 export default function CollectionsPage() {
-  return (
-    <main className="min-h-screen p-4">
-      <YouTubeCollections />
-    </main>
-  );
+  redirect('/playlists');
 }

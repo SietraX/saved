@@ -25,8 +25,8 @@ export const Navigation = () => {
               <Button variant="ghost">Saved Collections</Button>
             </Link>
             <Link
-              href="/collections"
-              className={pathname === "/collections" ? "font-bold" : ""}
+              href="/playlists"
+              className={pathname.startsWith("/playlists") || pathname.startsWith("/liked-videos") || pathname.startsWith("/watch-later") ? "font-bold" : ""}
             >
               YT Collections
             </Link>
@@ -35,7 +35,7 @@ export const Navigation = () => {
             </Button>
           </>
         ) : (
-          <Button onClick={() => signIn("google", { callbackUrl: "/collections" })} variant="outline">
+          <Button onClick={() => signIn("google", { callbackUrl: "/saved-collections" })} variant="outline">
             Sign In
           </Button>
         )}
