@@ -29,16 +29,29 @@ export async function GET(req: NextRequest) {
       maxResults: 50,
     });
 
-    const videoIds = response.data.items
-      ?.map((item) => item.snippet?.resourceId?.videoId)
-      .filter((id): id is string => typeof id === 'string') || [];
+    const playlistItems = response.data.items;
+    const videoIds = playlistItems?.map(item => item.contentDetails?.videoId).filter(Boolean) as string[];
 
-    const videoDetails = await youtube.videos.list({
-      part: ["snippet", "statistics"],
+    const videoDetailsResponse = await youtube.videos.list({
+      part: ["snippet", "contentDetails", "statistics"],
       id: videoIds,
     });
 
-    return NextResponse.json(videoDetails.data);
+    const videoDetails = videoDetailsResponse.data.items;
+
+    const videos = playlistItems?.map(item => {
+      const videoDetail = videoDetails?.find(v => v.id === item.contentDetails?.videoId);
+      return {
+        ...item,
+        statistics: videoDetail?.statistics,
+        contentDetails: {
+          ...item.contentDetails,
+          duration: videoDetail?.contentDetails?.duration
+        }
+      };
+    });
+
+    return NextResponse.json({ items: videos });
   } catch (error) {
     console.error("Error fetching playlist videos:", error);
     return NextResponse.json({ error: "An error occurred" }, { status: 500 });

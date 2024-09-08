@@ -69,11 +69,21 @@ export function usePlaylistData(playlistId: string, type: "youtube" | "saved" | 
           throw new Error(`HTTP error! status: ${response?.status}`);
         }
         const data = await response?.json();
-        setVideos(data.items || []);
+        
+        // Normalize the video data to include duration for all types
+        const normalizedVideos = data.items.map((video: any) => ({
+          ...video,
+          contentDetails: {
+            ...video.contentDetails,
+            duration: video.contentDetails?.duration || video.duration || null,
+          },
+        }));
+        
+        setVideos(normalizedVideos);
         if (type === "saved" || type === "liked") {
           setPlaylist((prev) =>
             prev
-              ? { ...prev, contentDetails: { itemCount: data.items.length } }
+              ? { ...prev, contentDetails: { itemCount: normalizedVideos.length } }
               : null
           );
         }
