@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MoreVertical, Save, Share2, Trash2 } from "lucide-react";
 import { formatViewCount, formatDuration } from "@/lib/utils";
 import { VideoItemProps } from "@/types/index";
+import { useToast } from "@//hooks/use-toast"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,7 @@ import {
 
 export const VideoItem = ({ video, type, filterType, onClick, onDelete, collectionId }: VideoItemProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleSaveToCollection = () => {
     // Implement save to collection functionality
@@ -30,8 +32,22 @@ export const VideoItem = ({ video, type, filterType, onClick, onDelete, collecti
   };
 
   const handleShare = () => {
-    // Implement share functionality
-    console.log("Share");
+    const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;
+    navigator.clipboard.writeText(videoUrl).then(() => {
+      toast({
+        title: "Link copied!",
+        description: "The video URL has been copied to your clipboard.",
+        duration: 3000,
+      });
+    }).catch((error) => {
+      console.error("Failed to copy: ", error);
+      toast({
+        title: "Copy failed",
+        description: "Unable to copy the link. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    });
   };
 
   const handleDelete = async () => {
