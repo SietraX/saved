@@ -13,6 +13,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   const { playlist, videos, isLoading, error, refetchVideos } = usePlaylistData(playlistId, type);
   const {
     filteredVideos,
+    setFilteredVideos, // Ensure this is destructured
     searchTerm,
     setSearchTerm,
     filterType,

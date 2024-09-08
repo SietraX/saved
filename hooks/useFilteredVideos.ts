@@ -58,6 +58,7 @@ export function useFilteredVideos(videos: PlaylistVideoProps[]) {
 
   return {
     filteredVideos,
+    setFilteredVideos, // Add this line
     searchTerm,
     setSearchTerm,
     filterType,
