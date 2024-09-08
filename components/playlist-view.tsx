@@ -15,7 +15,13 @@ import { MoreHorizontal, Play, Shuffle, GripVertical } from "lucide-react";
 import { VideoModal } from "@/components/video-modal";
 import Image from "next/image";
 import { formatViewCount } from "@/lib/utils";
-import { PlaylistVideoProps, PlaylistDetailsProps, FilterType } from "@/types/youtube";
+import {
+  PlaylistVideoProps,
+  PlaylistDetailsProps,
+  FilterType,
+  YoutubeVideoProps,
+  SupabaseVideoProps,
+} from "@/types/youtube";
 
 type PlaylistViewProps = {
   playlistId: string;
@@ -39,10 +45,32 @@ const formatDuration = (duration: string): string => {
   }
 };
 
+function normalizeVideoData(video: PlaylistVideoProps): YoutubeVideoProps {
+  if ("video_id" in video) {
+    // This is Supabase data
+    return {
+      id: video.video_id,
+      snippet: {
+        title: video.title,
+        thumbnails: {
+          default: { url: video.thumbnail_url },
+        },
+        channelTitle: video.channel_title,
+        publishedAt: video.published_at,
+      },
+      creatorContentType: "VIDEO", // Default to "VIDEO" for Supabase entries
+    };
+  }
+  // This is already YouTube data
+  return video;
+}
+
 export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   const [playlist, setPlaylist] = useState<PlaylistDetailsProps | null>(null);
   const [videos, setVideos] = useState<PlaylistVideoProps[]>([]);
-  const [filteredVideos, setFilteredVideos] = useState<PlaylistVideoProps[]>([]);
+  const [filteredVideos, setFilteredVideos] = useState<PlaylistVideoProps[]>(
+    []
+  );
   const [sortOrder, setSortOrder] = useState("dateAddedNewest");
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -124,7 +152,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   }, [playlistId, type]);
 
   useEffect(() => {
-    let filtered = videos;
+    let filtered = videos.map(normalizeVideoData);
 
     if (searchTerm) {
       filtered = filtered.filter((video) =>
@@ -292,85 +320,103 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
                 : "space-y-2"
             }`}
           >
-            {filteredVideos.map((video) => (
-              <div
-                key={video.id}
-                className={`${
-                  type === "liked" && filterType === "shorts"
-                    ? "cursor-pointer hover:opacity-75 transition-opacity"
-                    : "flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
-                }`}
-                onClick={() => handleVideoClick(video.id)}
-              >
-                {type === "liked" && filterType === "shorts" ? (
-                  <>
-                    <div className="relative w-[180px] h-[320px]">
-                      <Image
-                        src={video.snippet.thumbnails?.default?.url || '/placeholder-image.jpg'}
-                        alt={video.snippet.title}
-                        fill
-                        sizes="180px"
-                        style={{ objectFit: "cover" }}
-                        className="rounded-lg"
-                      />
-                    </div>
-                    <div className="mt-2">
-                      <h3 className="text-sm font-medium line-clamp-2">
-                        {video.snippet.title}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {video.statistics?.viewCount
-                          ? `${formatViewCount(
-                              video.statistics.viewCount
-                            )} views`
-                          : ""}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {type === "saved" && (
-                      <GripVertical className="cursor-move" />
+            {filteredVideos ? (
+              filteredVideos.map((video) => {
+                const normalizedVideo = normalizeVideoData(video);
+                return (
+                  <div
+                    key={normalizedVideo.id}
+                    className={`${
+                      type === "liked" && filterType === "shorts"
+                        ? "cursor-pointer hover:opacity-75 transition-opacity"
+                        : "flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
+                    }`}
+                    onClick={() => handleVideoClick(normalizedVideo.id)}
+                  >
+                    {type === "liked" && filterType === "shorts" ? (
+                      <>
+                        <div className="relative w-[180px] h-[320px]">
+                          <Image
+                            src={
+                              normalizedVideo.snippet.thumbnails?.default
+                                ?.url || "/placeholder-image.jpg"
+                            }
+                            alt={normalizedVideo.snippet.title}
+                            fill
+                            sizes="180px"
+                            style={{ objectFit: "cover" }}
+                            className="rounded-lg"
+                          />
+                        </div>
+                        <div className="mt-2">
+                          <h3 className="text-sm font-medium line-clamp-2">
+                            {normalizedVideo.snippet.title}
+                          </h3>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {normalizedVideo.statistics?.viewCount
+                              ? `${formatViewCount(
+                                  normalizedVideo.statistics.viewCount
+                                )} views`
+                              : ""}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {type === "saved" && (
+                          <GripVertical className="cursor-move" />
+                        )}
+                        <div className="relative w-40 h-[90px]">
+                          <Image
+                            src={
+                              normalizedVideo.snippet.thumbnails?.default
+                                ?.url || "/placeholder-image.jpg"
+                            }
+                            alt={normalizedVideo.snippet.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            style={{ objectFit: "cover" }}
+                            className="rounded-lg"
+                          />
+                          {normalizedVideo.creatorContentType === "SHORTS" && (
+                            <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                              Short
+                            </div>
+                          )}
+                          {normalizedVideo.contentDetails?.duration && (
+                            <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 py-0.5 rounded">
+                              {formatDuration(
+                                normalizedVideo.contentDetails.duration
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium">
+                            {normalizedVideo.snippet.title}
+                          </h3>
+                          <p className="text-xs text-gray-800">
+                            {normalizedVideo.snippet.channelTitle}
+                            {normalizedVideo.statistics?.viewCount &&
+                              ` • ${formatViewCount(
+                                normalizedVideo.statistics.viewCount
+                              )} views`}
+                            {` • ${new Date(
+                              normalizedVideo.snippet.publishedAt
+                            ).toLocaleDateString()}`}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal />
+                        </Button>
+                      </>
                     )}
-                    <div className="relative w-40 h-[90px]">
-                      <Image
-                        src={video.snippet.thumbnails?.default?.url || '/placeholder-image.jpg'}
-                        alt={video.snippet.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        style={{ objectFit: "cover" }}
-                      />
-                      {video.creatorContentType === "SHORTS" && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                          Short
-                        </div>
-                      )}
-                      {video.contentDetails?.duration && (
-                        <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 py-0.5 rounded">
-                          {formatDuration(video.contentDetails.duration)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{video.snippet.title}</h3>              
-                      <p className="text-xs text-gray-800">
-                        {video.snippet.channelTitle}
-                        {video.statistics?.viewCount &&
-                          ` • ${formatViewCount(
-                            video.statistics.viewCount
-                          )} views`}
-                        {` • ${new Date(
-                          video.snippet.publishedAt
-                        ).toLocaleDateString()}`}
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal />
-                    </Button>
-                  </>
-                )}
-              </div>
-            ))}
+                  </div>
+                );
+              })
+            ) : (
+              <p>no vidoes found</p>
+            )}
           </div>
         </div>
       </div>
@@ -380,8 +426,10 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
         videoId={selectedVideoId || ""}
         isShort={
           selectedVideoId
-            ? videos.find((v) => v.id === selectedVideoId)
-                ?.creatorContentType === "SHORTS"
+            ? videos.find(
+                (v): v is YoutubeVideoProps =>
+                  "id" in v && v.id === selectedVideoId
+              )?.snippet?.creatorContentType === "SHORTS"
             : false
         }
       />

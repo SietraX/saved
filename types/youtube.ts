@@ -1,14 +1,15 @@
-export type PlaylistVideoProps = {
+export type YoutubeVideoProps = {
   id: string;
   snippet: {
     title: string;
-    thumbnails?: { 
+    thumbnails?: {
       default?: { url: string };
       medium?: { url: string };
       high?: { url: string };
     };
     channelTitle: string;
     publishedAt: string;
+    creatorContentType?: string;
   };
   statistics?: {
     viewCount?: string;
@@ -17,8 +18,19 @@ export type PlaylistVideoProps = {
   contentDetails?: {
     duration?: string;
   };
-  
 };
+
+export type SupabaseVideoProps = {
+  id: string;
+  video_id: string;
+  title: string;
+  thumbnail_url: string;
+  channel_title: string;
+  published_at: string;
+  creator_content_type?: string;
+};
+
+export type PlaylistVideoProps = YoutubeVideoProps | SupabaseVideoProps;
 
 export type PlaylistDetailsProps = {
   id: string;
