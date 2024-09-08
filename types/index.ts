@@ -72,3 +72,15 @@ export interface PlaylistProps {
     itemCount: number;
   };
 }
+
+export type PlaylistViewProps = {
+  playlistId: string;
+  type: "youtube" | "saved" | "liked";
+};
+
+export type VideoItemProps = {
+  video: YoutubeVideoProps;
+  type: "youtube" | "saved" | "liked";
+  filterType: FilterType;
+  onClick: () => void;
+};
