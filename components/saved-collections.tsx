@@ -3,7 +3,13 @@
 import { useState, useEffect, KeyboardEvent, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Plus, MoreVertical, Pen, Trash, Check, X } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,12 +27,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 interface SavedCollection {
   id: string;
   name: string;
   created_at: string;
+  videoCount: number;
 }
 
 export const SavedCollections = () => {
@@ -37,7 +44,9 @@ export const SavedCollections = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     fetchCollections();
@@ -47,7 +56,19 @@ export const SavedCollections = () => {
     const response = await fetch("/api/saved-collections");
     if (response.ok) {
       const data = await response.json();
-      setCollections(data);
+      const collectionsWithCounts = await Promise.all(
+        data.map(async (collection: SavedCollection) => {
+          const countResponse = await fetch(
+            `/api/saved-collections/${collection.id}/videos`
+          );
+          if (countResponse.ok) {
+            const { items } = await countResponse.json();
+            return { ...collection, videoCount: items.length };
+          }
+          return { ...collection, videoCount: 0 };
+        })
+      );
+      setCollections(collectionsWithCounts);
     }
   };
 
@@ -65,14 +86,14 @@ export const SavedCollections = () => {
 
       if (response.ok) {
         const newCollection = await response.json();
-        setCollections([...collections, newCollection]);
+        setCollections([...collections, { ...newCollection, videoCount: 0 }]);
         setNewCollectionName("");
       }
     }
   };
 
   const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleCreateCollection();
     }
   };
@@ -92,7 +113,11 @@ export const SavedCollections = () => {
 
       if (response.ok) {
         const updatedCollection = await response.json();
-        setCollections(collections.map(c => c.id === id ? updatedCollection : c));
+        setCollections(
+          collections.map((c) =>
+            c.id === id ? { ...updatedCollection, videoCount: c.videoCount } : c
+          )
+        );
         setEditingId(null);
       }
     }
@@ -114,7 +139,7 @@ export const SavedCollections = () => {
       });
 
       if (response.ok) {
-        setCollections(collections.filter(c => c.id !== deleteId));
+        setCollections(collections.filter((c) => c.id !== deleteId));
       }
       setDeleteId(null);
     }
@@ -124,10 +149,13 @@ export const SavedCollections = () => {
     setDeleteId(null);
   };
 
-  const handleEditKeyDown = (e: KeyboardEvent<HTMLInputElement>, id: string) => {
-    if (e.key === 'Enter') {
+  const handleEditKeyDown = (
+    e: KeyboardEvent<HTMLInputElement>,
+    id: string
+  ) => {
+    if (e.key === "Enter") {
       handleSaveEdit(id);
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       handleCancelEdit();
     }
   };
@@ -136,7 +164,10 @@ export const SavedCollections = () => {
     router.push(`/saved-collections/${collectionId}`);
   };
 
-  const sortedCollections = useMemo(() => sortCollections([...collections]), [collections]);
+  const sortedCollections = useMemo(
+    () => sortCollections([...collections]),
+    [collections]
+  );
 
   return (
     <div className="space-y-6">
@@ -167,17 +198,17 @@ export const SavedCollections = () => {
                     className="mr-2 flex-grow"
                     autoFocus
                   />
-                  <Button 
-                    onClick={() => handleSaveEdit(collection.id)} 
-                    size="icon" 
+                  <Button
+                    onClick={() => handleSaveEdit(collection.id)}
+                    size="icon"
                     variant="ghost"
                     className="h-8 w-8"
                   >
                     <Check className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    onClick={handleCancelEdit} 
-                    size="icon" 
+                  <Button
+                    onClick={handleCancelEdit}
+                    size="icon"
                     variant="ghost"
                     className="h-8 w-8"
                   >
@@ -197,10 +228,16 @@ export const SavedCollections = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(collection.id, collection.name)}>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleEdit(collection.id, collection.name)
+                        }
+                      >
                         <Pen className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDeleteClick(collection.id)}>
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteClick(collection.id)}
+                      >
                         <Trash className="mr-2 h-4 w-4" /> Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -215,8 +252,16 @@ export const SavedCollections = () => {
               </p>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <p>0 videos</p>
-              <Button variant="outline" onClick={() => handleViewCollection(collection.id)}>View Collection</Button>
+              <p>
+                {collection.videoCount} video
+                {collection.videoCount !== 1 ? "s" : ""}
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => handleViewCollection(collection.id)}
+              >
+                View Collection
+              </Button>
             </CardFooter>
           </Card>
         ))}
@@ -225,14 +270,21 @@ export const SavedCollections = () => {
       <AlertDialog open={deleteId !== null} onOpenChange={handleCancelDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this collection?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Are you sure you want to delete this collection?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the collection and all its contents.
+              This action cannot be undone. This will permanently delete the
+              collection and all its contents.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel onClick={handleCancelDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

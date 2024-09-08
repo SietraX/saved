@@ -105,7 +105,22 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
           throw new Error(`HTTP error! status: ${response?.status}`);
         }
         const data = await response?.json();
-        setPlaylist(data);
+
+        // Normalize the data structure for saved collections
+        if (type === "saved") {
+          setPlaylist({
+            id: data.id,
+            snippet: {
+              title: data.name,
+              description: "Your saved collection",
+            },
+            contentDetails: {
+              itemCount: data.videoCount || 0,
+            },
+          });
+        } else {
+          setPlaylist(data);
+        }
       } catch (error) {
         console.error("Error fetching playlist details:", error);
         setError("Failed to load playlist details. Please try again later.");
@@ -129,7 +144,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
         }
         const data = await response?.json();
         setVideos(data.items || []);
-        if (type === "liked") {
+        if (type === "saved" || type === "liked") {
           setPlaylist((prev) =>
             prev
               ? { ...prev, contentDetails: { itemCount: data.items.length } }
@@ -221,6 +236,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 style={{ objectFit: "cover" }}
                 priority
+                className="rounded-lg"
               />
             </div>
             <div className="flex justify-between items-center mb-2 flex-shrink-0">
@@ -235,7 +251,9 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
               </p>
             )}
             <p className="text-sm text-gray-500 mb-4 flex-shrink-0">
-              {type !== "liked" && `${privacyStatus} • `}
+              {type !== "liked" &&
+                privacyStatus !== "unknown" &&
+                `${privacyStatus} • `}
               {itemCount} videos
             </p>
             <div className="flex gap-2 mb-4 flex-shrink-0">
