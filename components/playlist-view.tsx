@@ -10,7 +10,7 @@ import { VideoItem } from "@/components/video-item";
 import { PlaylistControls } from "@/components/playlist-controls";
 
 export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
-  const { playlist, videos, isLoading, error } = usePlaylistData(playlistId, type);
+  const { playlist, videos, isLoading, error, refetchVideos } = usePlaylistData(playlistId, type);
   const {
     filteredVideos,
     searchTerm,
@@ -30,6 +30,15 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
     setSelectedVideoId(null);
   };
 
+  const handleVideoAdded = () => {
+    refetchVideos();
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+    setFilteredVideos((prevVideos) => prevVideos.filter((v) => v.id !== videoId));
+    refetchVideos(); // Refresh the video list after deletion
+  };
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!playlist) return <div>No playlist data available.</div>;
@@ -47,6 +56,8 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           setSortOrder={setSortOrder}
+          collectionId={type === "saved" ? playlistId : undefined}
+          onVideoAdded={handleVideoAdded}
         />
         <div>
           <div className={`${
@@ -61,6 +72,8 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
                 type={type}
                 filterType={filterType}
                 onClick={() => handleVideoClick(video.id)}
+                onDelete={handleDeleteVideo}
+                collectionId={type === "saved" ? playlistId : undefined}
               />
             ))}
           </div>

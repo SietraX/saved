@@ -83,4 +83,6 @@ export type VideoItemProps = {
   type: "youtube" | "saved" | "liked";
   filterType: FilterType;
   onClick: () => void;
+  onDelete?: (videoId: string) => void;
+  collectionId?: string;
 };

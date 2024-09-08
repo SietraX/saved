@@ -9,6 +9,10 @@ export function usePlaylistData(playlistId: string, type: "youtube" | "saved" | 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const refetchVideos = () => {
+    fetchPlaylistVideos();
+  };
+
   useEffect(() => {
     const fetchPlaylistDetails = async () => {
       try {
@@ -102,5 +106,5 @@ export function usePlaylistData(playlistId: string, type: "youtube" | "saved" | 
     fetchPlaylistVideos();
   }, [playlistId, type]);
 
-  return { playlist, videos, isLoading, error };
+  return { playlist, videos, isLoading, error, refetchVideos };
 }
