@@ -15,50 +15,12 @@ import { MoreHorizontal, Play, Shuffle, GripVertical } from "lucide-react";
 import { VideoModal } from "@/components/video-modal";
 import Image from "next/image";
 import { formatViewCount } from "@/lib/utils";
-
-type PlaylistVideo = {
-  id: string;
-  snippet: {
-    title: string;
-    thumbnails: { default: { url: string } };
-    channelTitle: string;
-    publishedAt: string;
-  };
-  statistics?: {
-    viewCount?: string;
-  };
-  creatorContentType?: "SHORTS" | "VIDEO";
-  contentDetails?: {
-    duration?: string;
-  };
-};
-
-type PlaylistDetails = {
-  id: string;
-  snippet: {
-    title: string;
-    description?: string;
-    thumbnails?: {
-      medium?: {
-        url?: string;
-      };
-    };
-    channelTitle?: string;
-  };
-  status?: {
-    privacyStatus?: "private" | "public" | "unlisted";
-  };
-  contentDetails?: {
-    itemCount?: number;
-  };
-};
+import { PlaylistVideoProps, PlaylistDetailsProps, FilterType } from "@/types/youtube";
 
 type PlaylistViewProps = {
   playlistId: string;
   type: "youtube" | "saved" | "liked";
 };
-
-type FilterType = "all" | "videos" | "shorts";
 
 const formatDuration = (duration: string): string => {
   const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
@@ -78,9 +40,9 @@ const formatDuration = (duration: string): string => {
 };
 
 export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
-  const [playlist, setPlaylist] = useState<PlaylistDetails | null>(null);
-  const [videos, setVideos] = useState<PlaylistVideo[]>([]);
-  const [filteredVideos, setFilteredVideos] = useState<PlaylistVideo[]>([]);
+  const [playlist, setPlaylist] = useState<PlaylistDetailsProps | null>(null);
+  const [videos, setVideos] = useState<PlaylistVideoProps[]>([]);
+  const [filteredVideos, setFilteredVideos] = useState<PlaylistVideoProps[]>([]);
   const [sortOrder, setSortOrder] = useState("dateAddedNewest");
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -203,7 +165,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
     setSelectedVideoId(null);
   };
 
-  const getImageUrl = (playlist: PlaylistDetails | null) => {
+  const getImageUrl = (playlist: PlaylistDetailsProps | null) => {
     return (
       playlist?.snippet?.thumbnails?.medium?.url ||
       "/default-playlist-image.png"
@@ -344,7 +306,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
                   <>
                     <div className="relative w-[180px] h-[320px]">
                       <Image
-                        src={video.snippet.thumbnails.default.url}
+                        src={video.snippet.thumbnails?.default?.url || '/placeholder-image.jpg'}
                         alt={video.snippet.title}
                         fill
                         sizes="180px"
@@ -372,7 +334,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
                     )}
                     <div className="relative w-40 h-[90px]">
                       <Image
-                        src={video.snippet.thumbnails.default.url}
+                        src={video.snippet.thumbnails?.default?.url || '/placeholder-image.jpg'}
                         alt={video.snippet.title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
