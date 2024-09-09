@@ -1,4 +1,4 @@
-import { SavedCollections } from "@/components/saved-collections";
+import SavedCollections from "@/components/saved-collections";
 
 export default function SavedCollectionsPage() {
   return (

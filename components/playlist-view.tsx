@@ -45,9 +45,11 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   if (!playlist) return <div>No playlist data available.</div>;
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 p-4">
+    <div className="flex flex-col md:flex-row gap-6"> {/* Removed p-4 pt-20 */}
       <div className="md:w-1/3 flex flex-col">
-        <PlaylistInfoCard playlist={playlist} type={type} />
+        <div className="sticky top-20"> {/* Added sticky positioning */}
+          <PlaylistInfoCard playlist={playlist} type={type} />
+        </div>
       </div>
       <div className="md:w-2/3 flex flex-col">
         <PlaylistControls
@@ -60,7 +62,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
           collectionId={type === "saved" ? playlistId : undefined}
           onVideoAdded={handleVideoAdded}
         />
-        <div>
+        <div className="mt-4"> {/* Added top margin */}
           <div className={`${
             type === "liked" && filterType === "shorts"
               ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"

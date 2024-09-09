@@ -68,7 +68,6 @@ export const PlaylistControls = ({
         },
         body: JSON.stringify({ videoUrl, collectionId }),
       });
-
       const data = await response.json();
 
       if (!response.ok) {
@@ -95,7 +94,7 @@ export const PlaylistControls = ({
   };
 
   return (
-    <div className="sticky top-0 bg-background z-10 pb-4">
+    <div className="bg-background">
       {type === "saved" && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -159,8 +158,12 @@ export const PlaylistControls = ({
           <SelectItem value="dateAddedNewest">Date added (newest)</SelectItem>
           <SelectItem value="dateAddedOldest">Date added (oldest)</SelectItem>
           <SelectItem value="mostPopular">Most popular</SelectItem>
-          <SelectItem value="datePublishedNewest">Date published (newest)</SelectItem>
-          <SelectItem value="datePublishedOldest">Date published (oldest)</SelectItem>
+          <SelectItem value="datePublishedNewest">
+            Date published (newest)
+          </SelectItem>
+          <SelectItem value="datePublishedOldest">
+            Date published (oldest)
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>

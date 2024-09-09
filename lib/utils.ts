@@ -32,3 +32,20 @@ export function formatDuration(duration: string): string {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 }
+
+export function moveItemToTop<T extends { id: string; display_order?: number }>(
+  items: T[],
+  itemId: string
+): T[] {
+  const itemIndex = items.findIndex(item => item.id === itemId);
+  if (itemIndex === -1) return items;
+
+  const newItems = [...items];
+  const [movedItem] = newItems.splice(itemIndex, 1);
+  newItems.unshift(movedItem);
+
+  return newItems.map((item, index) => ({
+    ...item,
+    display_order: index + 1
+  }));
+}
