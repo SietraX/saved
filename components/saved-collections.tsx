@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useDraggableList } from "@/hooks/useDraggableList";
 import { useCollections } from '@/hooks/useCollections';
+import { CollectionCard } from "@/components/collection-card";
 
 interface SavedCollection {
   id: string;
@@ -210,76 +211,14 @@ export default function SavedCollections() {
                         isEditMode && snapshot.isDragging ? "shadow-lg" : ""
                       }`}
                     >
-                      <Card
-                        className={`flex flex-col h-full ${
-                          !isEditMode
-                            ? "cursor-pointer hover:shadow-md transition-shadow"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          !isEditMode && handleViewCollection(collection.id)
-                        }
-                      >
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium">
-                            {collection.name}
-                          </CardTitle>
-                          {!isEditMode && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEdit(collection.id, collection.name);
-                                  }}
-                                >
-                                  <Pen className="mr-2 h-4 w-4" /> Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleMoveToTop(collection.id);
-                                  }}
-                                >
-                                  <ArrowUp className="mr-2 h-4 w-4" /> Move to Top
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteClick(collection.id);
-                                  }}
-                                >
-                                  <Trash className="mr-2 h-4 w-4" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </CardHeader>
-                        <CardContent className="flex-grow">
-                          <p className="text-sm text-gray-500">
-                            Created on:{" "}
-                            {new Date(
-                              collection.created_at
-                            ).toLocaleDateString()}
-                          </p>
-                        </CardContent>
-                        <CardFooter>
-                          <p>
-                            {collection.videoCount} video
-                            {collection.videoCount !== 1 ? "s" : ""}
-                          </p>
-                        </CardFooter>
-                      </Card>
+                      <CollectionCard
+                        collection={collection}
+                        isEditMode={isEditMode}
+                        onEdit={handleEdit}
+                        onDelete={handleDeleteClick}
+                        onMoveToTop={handleMoveToTop}
+                        onClick={() => handleViewCollection(collection.id)}
+                      />
                     </div>
                   )}
                 </Draggable>
