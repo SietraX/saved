@@ -4,22 +4,13 @@ import { useState, KeyboardEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useDraggableList } from "@/hooks/useDraggableList";
 import { useCollections } from '@/hooks/useCollections';
 import { CollectionCard } from "@/components/collection-card";
 import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
+import { ConfirmationDialog } from "@/components/confirmation-dialog";
 
 export default function SavedCollections() {
   const router = useRouter();
@@ -180,27 +171,15 @@ export default function SavedCollections() {
           )}
         </Droppable>
       </DragDropContext>
-      <AlertDialog open={isDeleteConfirmationOpen} onOpenChange={closeDeleteConfirmation}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to delete this collection?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              collection and all its contents.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={closeDeleteConfirmation}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        isOpen={isDeleteConfirmationOpen}
+        onClose={closeDeleteConfirmation}
+        onConfirm={handleConfirmDelete}
+        title="Are you sure you want to delete this collection?"
+        description="This action cannot be undone. This will permanently delete the collection and all its contents."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 }
