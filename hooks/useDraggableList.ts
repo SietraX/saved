@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { DraggableLocation, DropResult } from '@hello-pangea/dnd';
 
 export function useDraggableList<T extends { id: string; display_order?: number }>(initialItems: T[]) {
   const [items, setItems] = useState<T[]>(initialItems);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [originalItems, setOriginalItems] = useState<T[]>([]);
 
-  const onDragEnd = async (result: DropResult) => {
+  const onDragEnd = useCallback((result: DropResult) => {
     if (!result.destination) {
       return;
     }
@@ -18,26 +19,34 @@ export function useDraggableList<T extends { id: string; display_order?: number 
     const updatedItems = newItems.map((item, index) => ({ ...item, display_order: index + 1 }));
 
     setItems(updatedItems);
+  }, [items]);
 
-    // Send the new order to the server
-    try {
-      const response = await fetch('/api/saved-collections/reorder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ collections: updatedItems }),
-      });
+  const enterEditMode = useCallback(() => {
+    setOriginalItems([...items]);
+    setIsEditMode(true);
+  }, [items]);
 
-      if (!response.ok) {
-        console.error('Failed to update order on server');
-        // Optionally, revert the order in the UI
-      }
-    } catch (error) {
-      console.error('Error updating order:', error);
-      // Optionally, revert the order in the UI
-    }
+  const saveOrder = useCallback(() => {
+    setIsEditMode(false);
+    return items;
+  }, [items]);
+
+  const cancelEditMode = useCallback(() => {
+    setItems(originalItems);
+    setIsEditMode(false);
+  }, [originalItems]);
+
+  const updateItems = useCallback((newItems: T[]) => {
+    setItems(newItems);
+  }, []);
+
+  return {
+    items,
+    isEditMode,
+    onDragEnd,
+    enterEditMode,
+    saveOrder,
+    cancelEditMode,
+    updateItems,
   };
-
-  const toggleEditMode = () => setIsEditMode(!isEditMode);
-
-  return { items, setItems, isEditMode, toggleEditMode, onDragEnd };
 }

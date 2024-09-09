@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, KeyboardEvent, useMemo } from "react";
+import { useState, KeyboardEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
@@ -21,14 +21,6 @@ import { useCollections } from '@/hooks/useCollections';
 import { CollectionCard } from "@/components/collection-card";
 import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 
-interface SavedCollection {
-  id: string;
-  name: string;
-  created_at: string;
-  videoCount: number;
-  display_order?: number;
-}
-
 export default function SavedCollections() {
   const router = useRouter();
   const {
@@ -42,23 +34,17 @@ export default function SavedCollections() {
     reorderCollections,
   } = useCollections();
 
-  const [newCollectionName, setNewCollectionName] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [originalCollections, setOriginalCollections] = useState<SavedCollection[]>([]);
-
   const {
     items: sortedCollections,
-    setItems: setSortedCollections,
     isEditMode,
-    toggleEditMode,
     onDragEnd,
+    enterEditMode,
+    saveOrder,
+    cancelEditMode,
+    updateItems,
   } = useDraggableList(collections);
 
-  useEffect(() => {
-    setSortedCollections(collections);
-  }, [collections, setSortedCollections]);
+  const [newCollectionName, setNewCollectionName] = useState("");
 
   const {
     deleteId: deleteConfirmationId,
@@ -67,14 +53,19 @@ export default function SavedCollections() {
     isDeleteConfirmationOpen,
   } = useDeleteConfirmation();
 
+  useEffect(() => {
+    updateItems(collections);
+  }, [collections, updateItems]);
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  const handleCreateCollection = () => {
+  const handleCreateCollection = async () => {
     if (newCollectionName.trim()) {
-      createCollection(newCollectionName);
+      await createCollection(newCollectionName);
       setNewCollectionName("");
+      fetchCollections(); // Refresh the collections after creating a new one
     }
   };
 
@@ -86,18 +77,7 @@ export default function SavedCollections() {
 
   const handleEdit = async (id: string, newName: string) => {
     await updateCollection(id, newName);
-  };
-
-  const handleSaveEdit = async (id: string) => {
-    if (editName.trim()) {
-      await updateCollection(id, editName);
-      setEditingId(null);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditName("");
+    fetchCollections(); // Refresh the collections after editing
   };
 
   const handleDeleteClick = (id: string) => {
@@ -108,21 +88,7 @@ export default function SavedCollections() {
     if (deleteConfirmationId) {
       await deleteCollection(deleteConfirmationId);
       closeDeleteConfirmation();
-    }
-  };
-
-  const handleCancelDelete = () => {
-    closeDeleteConfirmation();
-  };
-
-  const handleEditKeyDown = (
-    e: KeyboardEvent<HTMLInputElement>,
-    id: string
-  ) => {
-    if (e.key === "Enter") {
-      handleSaveEdit(id);
-    } else if (e.key === "Escape") {
-      handleCancelEdit();
+      fetchCollections(); // Refresh the collections after deleting
     }
   };
 
@@ -130,23 +96,15 @@ export default function SavedCollections() {
     router.push(`/saved-collections/${collectionId}`);
   };
 
-  const handleEnterEditMode = () => {
-    setOriginalCollections([...sortedCollections]);
-    toggleEditMode();
-  };
-
   const handleSaveOrder = async () => {
-    await reorderCollections(sortedCollections);
-    toggleEditMode();
-  };
-
-  const handleCancelEditMode = () => {
-    setSortedCollections(originalCollections);
-    toggleEditMode();
+    const newOrder = saveOrder();
+    await reorderCollections(newOrder);
+    fetchCollections(); // Refresh the collections after reordering
   };
 
   const handleMoveToTop = async (collectionId: string) => {
     await moveCollectionToTop(collectionId);
+    fetchCollections(); // Refresh the collections after moving to top
   };
 
   return (
@@ -158,12 +116,12 @@ export default function SavedCollections() {
             <Button onClick={handleSaveOrder} variant="default">
               Save Order
             </Button>
-            <Button onClick={handleCancelEditMode} variant="outline">
+            <Button onClick={cancelEditMode} variant="outline">
               Cancel
             </Button>
           </div>
         ) : (
-          <Button onClick={handleEnterEditMode} variant="outline">
+          <Button onClick={enterEditMode} variant="outline">
             Edit Order
           </Button>
         )}
