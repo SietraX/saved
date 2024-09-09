@@ -8,22 +8,29 @@ const supabase = createClient(
 );
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  try {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-  if (!token?.sub) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    if (!token?.sub) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const { data, error } = await supabase
+      .from("saved_collections")
+      .select("*")
+      .eq("user_id", token.sub)
+      .order("display_order", { ascending: true });
+
+    if (error) {
+      console.error("Supabase error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
   }
-
-  const { data, error } = await supabase
-    .from("saved_collections")
-    .select("*")
-    .eq("user_id", token.sub);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
 }
 
 export async function POST(req: NextRequest) {
@@ -35,9 +42,23 @@ export async function POST(req: NextRequest) {
 
   const { name } = await req.json();
 
+  // Get the maximum order value
+  const { data: maxOrderData, error: maxOrderError } = await supabase
+    .from("saved_collections")
+    .select("display_order")
+    .eq("user_id", token.sub)
+    .order("display_order", { ascending: false })
+    .limit(1);
+
+  if (maxOrderError) {
+    return NextResponse.json({ error: maxOrderError.message }, { status: 500 });
+  }
+
+  const newOrder = maxOrderData && maxOrderData.length > 0 ? (maxOrderData[0].display_order || 0) + 1 : 1;
+
   const { data, error } = await supabase
     .from("saved_collections")
-    .insert({ user_id: token.sub, name })
+    .insert({ user_id: token.sub, name, display_order: newOrder })
     .select();
 
   if (error) {
