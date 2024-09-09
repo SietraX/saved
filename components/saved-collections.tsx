@@ -7,9 +7,9 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useDraggableList } from "@/hooks/useDraggableList";
-import { useCollections } from '@/hooks/useCollections';
+import { useCollections } from "@/hooks/useCollections";
 import { CollectionCard } from "@/components/collection-card";
-import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
+import { useDeleteConfirmation } from "@/hooks/useDeleteConfirmation";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 
 export default function SavedCollections() {
@@ -17,7 +17,6 @@ export default function SavedCollections() {
   const {
     collections,
     isLoading,
-    fetchCollections,
     createCollection,
     updateCollection,
     deleteCollection,
@@ -56,7 +55,6 @@ export default function SavedCollections() {
     if (newCollectionName.trim()) {
       await createCollection(newCollectionName);
       setNewCollectionName("");
-      fetchCollections(); // Refresh the collections after creating a new one
     }
   };
 
@@ -68,7 +66,6 @@ export default function SavedCollections() {
 
   const handleEdit = async (id: string, newName: string) => {
     await updateCollection(id, newName);
-    fetchCollections(); // Refresh the collections after editing
   };
 
   const handleDeleteClick = (id: string) => {
@@ -79,7 +76,6 @@ export default function SavedCollections() {
     if (deleteConfirmationId) {
       await deleteCollection(deleteConfirmationId);
       closeDeleteConfirmation();
-      fetchCollections(); // Refresh the collections after deleting
     }
   };
 
@@ -90,12 +86,10 @@ export default function SavedCollections() {
   const handleSaveOrder = async () => {
     const newOrder = saveOrder();
     await reorderCollections(newOrder);
-    fetchCollections(); // Refresh the collections after reordering
   };
 
   const handleMoveToTop = async (collectionId: string) => {
     await moveCollectionToTop(collectionId);
-    fetchCollections(); // Refresh the collections after moving to top
   };
 
   return (

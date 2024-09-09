@@ -35,8 +35,7 @@ export function useCollections() {
         );
         setCollections(collectionsWithCounts);
       } else {
-        const errorData = await response.json();
-        console.error("Error fetching collections:", errorData);
+        console.error("Error fetching collections:", await response.json());
       }
     } catch (error) {
       console.error("Unexpected error:", error);
@@ -47,7 +46,7 @@ export function useCollections() {
 
   useEffect(() => {
     fetchCollections();
-  }, [fetchCollections]);
+  }, []); // Remove fetchCollections from the dependency array
 
   const createCollection = async (name: string) => {
     if (name.trim()) {
@@ -59,7 +58,7 @@ export function useCollections() {
 
       if (response.ok) {
         const newCollection = await response.json();
-        setCollections([...collections, { ...newCollection, videoCount: 0 }]);
+        setCollections(prev => [...prev, { ...newCollection, videoCount: 0 }]);
         return newCollection;
       }
     }
@@ -76,10 +75,8 @@ export function useCollections() {
 
       if (response.ok) {
         const updatedCollection = await response.json();
-        setCollections(
-          collections.map((c) =>
-            c.id === id ? { ...updatedCollection, videoCount: c.videoCount } : c
-          )
+        setCollections(prev =>
+          prev.map(c => c.id === id ? { ...updatedCollection, videoCount: c.videoCount } : c)
         );
         return updatedCollection;
       }
@@ -143,7 +140,6 @@ export function useCollections() {
   return {
     collections,
     isLoading,
-    fetchCollections,
     createCollection,
     updateCollection,
     deleteCollection,
