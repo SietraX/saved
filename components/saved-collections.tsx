@@ -296,7 +296,11 @@ export default function SavedCollections() {
                       }`}
                     >
                       <Card
-                        className="flex flex-col h-full"
+                        className={`flex flex-col h-full ${
+                          !isEditMode
+                            ? "cursor-pointer hover:shadow-md transition-shadow"
+                            : ""
+                        }`}
                         onClick={() =>
                           !isEditMode && handleViewCollection(collection.id)
                         }
@@ -308,7 +312,11 @@ export default function SavedCollections() {
                           {!isEditMode && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                <Button
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <span className="sr-only">Open menu</span>
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
@@ -350,22 +358,11 @@ export default function SavedCollections() {
                             ).toLocaleDateString()}
                           </p>
                         </CardContent>
-                        <CardFooter className="flex justify-between">
+                        <CardFooter>
                           <p>
                             {collection.videoCount} video
                             {collection.videoCount !== 1 ? "s" : ""}
                           </p>
-                          {!isEditMode && (
-                            <Button
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewCollection(collection.id);
-                              }}
-                            >
-                              View Collection
-                            </Button>
-                          )}
                         </CardFooter>
                       </Card>
                     </div>
