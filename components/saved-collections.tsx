@@ -3,20 +3,7 @@
 import { useState, useEffect, KeyboardEvent, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Plus, MoreVertical, Pen, Trash, Check, X, ArrowUp } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Plus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -89,9 +76,8 @@ export default function SavedCollections() {
     }
   };
 
-  const handleEdit = (id: string, currentName: string) => {
-    setEditingId(id);
-    setEditName(currentName);
+  const handleEdit = async (id: string, newName: string) => {
+    await updateCollection(id, newName);
   };
 
   const handleSaveEdit = async (id: string) => {

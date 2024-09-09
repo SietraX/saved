@@ -1,6 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+"use client"
+
+import { useState, useRef, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Pen, Trash, ArrowUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { MoreVertical, Pen, Trash, ArrowUp, Check, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,20 +40,86 @@ export function CollectionCard({
   onMoveToTop,
   onClick,
 }: CollectionCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(collection.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        handleCancelEdit();
+      }
+    };
+
+    if (isEditing) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isEditing]);
+
+  const handleSaveEdit = () => {
+    if (editName.trim() && editName !== collection.name) {
+      onEdit(collection.id, editName.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditName(collection.name);
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSaveEdit();
+    } else if (e.key === "Escape") {
+      handleCancelEdit();
+    }
+  };
+
   return (
     <Card
+      ref={cardRef}
       className={`flex flex-col h-full ${
-        !isEditMode
-          ? "cursor-pointer hover:shadow-md transition-shadow"
-          : ""
+        !isEditMode ? "cursor-pointer hover:shadow-md transition-shadow" : ""
       }`}
-      onClick={!isEditMode ? onClick : undefined}
+      onClick={() => {
+        if (!isEditMode && !isEditing) onClick();
+      }}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">
-          {collection.name}
-        </CardTitle>
-        {!isEditMode && (
+        {isEditing ? (
+          <div className="flex items-center space-x-2 flex-grow" onClick={(e) => e.stopPropagation()}>
+            <Input
+              ref={inputRef}
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-grow"
+              autoFocus
+            />
+            <Button onClick={handleSaveEdit} size="sm" variant="ghost">
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button onClick={handleCancelEdit} size="sm" variant="ghost">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <CardTitle className="text-sm font-medium">{collection.name}</CardTitle>
+        )}
+        {!isEditMode && !isEditing && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -59,7 +135,7 @@ export function CollectionCard({
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEdit(collection.id, collection.name);
+                  setIsEditing(true);
                 }}
               >
                 <Pen className="mr-2 h-4 w-4" /> Edit
