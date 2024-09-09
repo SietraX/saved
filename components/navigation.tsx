@@ -14,7 +14,7 @@ export const Navigation = () => {
   }
 
   return (
-    <nav className="flex justify-between items-center p-4 bg-gray-100">
+    <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-4 bg-gray-100 shadow-md">
       <Link href="/" className="text-xl font-bold">
         SAVED
       </Link>
