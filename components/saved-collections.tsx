@@ -30,7 +30,7 @@ import {
 import { useRouter } from "next/navigation";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useDraggableList } from "@/hooks/useDraggableList";
-import { moveItemToTop } from "@/lib/utils";
+import { useCollections } from '@/hooks/useCollections';
 
 interface SavedCollection {
   id: string;
@@ -42,14 +42,22 @@ interface SavedCollection {
 
 export default function SavedCollections() {
   const router = useRouter();
-  const [collections, setCollections] = useState<SavedCollection[]>([]);
+  const {
+    collections,
+    isLoading,
+    fetchCollections,
+    createCollection,
+    updateCollection,
+    deleteCollection,
+    moveCollectionToTop,
+    reorderCollections,
+  } = useCollections();
+
   const [newCollectionName, setNewCollectionName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [originalCollections, setOriginalCollections] = useState<
-    SavedCollection[]
-  >([]);
+  const [originalCollections, setOriginalCollections] = useState<SavedCollection[]>([]);
 
   const {
     items: sortedCollections,
@@ -60,57 +68,17 @@ export default function SavedCollections() {
   } = useDraggableList(collections);
 
   useEffect(() => {
-    fetchCollections();
-  }, []);
+    setSortedCollections(collections);
+  }, [collections, setSortedCollections]);
 
-  const fetchCollections = async () => {
-    try {
-      const response = await fetch("/api/saved-collections");
-      if (response.ok) {
-        const data = await response.json();
-        const collectionsWithCounts = await Promise.all(
-          data.map(async (collection: SavedCollection) => {
-            const countResponse = await fetch(
-              `/api/saved-collections/${collection.id}/videos`
-            );
-            if (countResponse.ok) {
-              const { items } = await countResponse.json();
-              return { ...collection, videoCount: items.length };
-            }
-            return { ...collection, videoCount: 0 };
-          })
-        );
-        setCollections(collectionsWithCounts);
-        setSortedCollections(collectionsWithCounts);
-        setOriginalCollections(collectionsWithCounts); // Store the original order
-      } else {
-        const errorData = await response.json();
-        console.error("Error fetching collections:", errorData);
-      }
-    } catch (error) {
-      console.error("Unexpected error:", error);
-    }
-  };
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  const sortCollections = (collectionsToSort: SavedCollection[]) => {
-    return collectionsToSort.sort(
-      (a, b) => (a.display_order || 0) - (b.display_order || 0)
-    );
-  };
-
-  const handleCreateCollection = async () => {
+  const handleCreateCollection = () => {
     if (newCollectionName.trim()) {
-      const response = await fetch("/api/saved-collections", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newCollectionName.trim() }),
-      });
-
-      if (response.ok) {
-        const newCollection = await response.json();
-        setCollections([...collections, { ...newCollection, videoCount: 0 }]);
-        setNewCollectionName("");
-      }
+      createCollection(newCollectionName);
+      setNewCollectionName("");
     }
   };
 
@@ -127,21 +95,8 @@ export default function SavedCollections() {
 
   const handleSaveEdit = async (id: string) => {
     if (editName.trim()) {
-      const response = await fetch(`/api/saved-collections/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim() }),
-      });
-
-      if (response.ok) {
-        const updatedCollection = await response.json();
-        setCollections(
-          collections.map((c) =>
-            c.id === id ? { ...updatedCollection, videoCount: c.videoCount } : c
-          )
-        );
-        setEditingId(null);
-      }
+      await updateCollection(id, editName);
+      setEditingId(null);
     }
   };
 
@@ -156,13 +111,7 @@ export default function SavedCollections() {
 
   const handleConfirmDelete = async () => {
     if (deleteId) {
-      const response = await fetch(`/api/saved-collections/${deleteId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setCollections(collections.filter((c) => c.id !== deleteId));
-      }
+      await deleteCollection(deleteId);
       setDeleteId(null);
     }
   };
@@ -192,23 +141,8 @@ export default function SavedCollections() {
   };
 
   const handleSaveOrder = async () => {
-    try {
-      const response = await fetch("/api/saved-collections/reorder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collections: sortedCollections }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update order on server");
-      }
-
-      setCollections(sortedCollections);
-      toggleEditMode();
-    } catch (error) {
-      console.error("Error saving order:", error);
-      // Optionally, show an error message to the user
-    }
+    await reorderCollections(sortedCollections);
+    toggleEditMode();
   };
 
   const handleCancelEditMode = () => {
@@ -217,26 +151,7 @@ export default function SavedCollections() {
   };
 
   const handleMoveToTop = async (collectionId: string) => {
-    const updatedCollections = moveItemToTop(sortedCollections, collectionId);
-    setSortedCollections(updatedCollections);
-
-    try {
-      const response = await fetch("/api/saved-collections/reorder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collections: updatedCollections }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update order on server");
-      }
-
-      setCollections(updatedCollections);
-    } catch (error) {
-      console.error("Error moving collection to top:", error);
-      // Optionally, show an error message to the user and revert the change
-      setSortedCollections(sortedCollections);
-    }
+    await moveCollectionToTop(collectionId);
   };
 
   return (

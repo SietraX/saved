@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MoreVertical, Save, Share2, Trash2 } from "lucide-react";
 import { formatViewCount, formatDuration } from "@/lib/utils";
 import { VideoItemProps } from "@/types/index";
-import { useToast } from "@//hooks/use-toast"
+import { useToast } from "@/hooks/useToast"
 import {
   DropdownMenu,
   DropdownMenuContent,
