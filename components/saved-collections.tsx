@@ -11,6 +11,7 @@ import { useCollections } from "@/hooks/useCollections";
 import { CollectionCard } from "@/components/collection-card";
 import { useDeleteConfirmation } from "@/hooks/useDeleteConfirmation";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
+import { useNewCollectionInput } from '@/hooks/useNewCollectionInput';
 
 export default function SavedCollections() {
   const router = useRouter();
@@ -34,7 +35,14 @@ export default function SavedCollections() {
     updateItems,
   } = useDraggableList(collections);
 
-  const [newCollectionName, setNewCollectionName] = useState("");
+  const {
+    newCollectionName,
+    setNewCollectionName,
+    handleCreateCollection,
+    handleKeyPress,
+  } = useNewCollectionInput(async (name) => {
+    await createCollection(name);
+  });
 
   const {
     deleteId: deleteConfirmationId,
@@ -50,19 +58,6 @@ export default function SavedCollections() {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-
-  const handleCreateCollection = async () => {
-    if (newCollectionName.trim()) {
-      await createCollection(newCollectionName);
-      setNewCollectionName("");
-    }
-  };
-
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleCreateCollection();
-    }
-  };
 
   const handleEdit = async (id: string, newName: string) => {
     await updateCollection(id, newName);
