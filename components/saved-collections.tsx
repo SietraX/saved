@@ -23,6 +23,7 @@ export default function SavedCollections() {
     deleteCollection,
     moveCollectionToTop,
     reorderCollections,
+    isMoving, // Add this
   } = useCollections();
 
   const {
@@ -160,6 +161,7 @@ export default function SavedCollections() {
           )}
         </Droppable>
       </DragDropContext>
+      {isMoving && <div>Moving collection...</div>} {/* Add this line to show a loading state */}
       <ConfirmationDialog
         isOpen={isDeleteConfirmationOpen}
         onClose={closeDeleteConfirmation}

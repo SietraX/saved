@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { moveItemToTop } from "@/lib/utils";
+import { useMoveToTop } from '@/hooks/useMoveToTop';
 
 interface SavedCollection {
   id: string;
@@ -96,25 +96,35 @@ export function useCollections() {
     return false;
   };
 
-  const moveCollectionToTop = async (id: string) => {
-    const updatedCollections = moveItemToTop(collections, id);
+  const updateCollectionsOrder = async (newOrder: SavedCollection[]) => {
     try {
       const response = await fetch("/api/saved-collections/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collections: updatedCollections }),
+        body: JSON.stringify({ collections: newOrder }),
       });
 
       if (response.ok) {
-        setCollections(updatedCollections);
+        setCollections(newOrder);
         return true;
       } else {
         throw new Error("Failed to update order on server");
       }
     } catch (error) {
-      console.error("Error moving collection to top:", error);
+      console.error("Error reordering collections:", error);
       return false;
     }
+  };
+
+  const { moveToTop, isMoving } = useMoveToTop(collections, updateCollectionsOrder);
+
+  const moveCollectionToTop = async (id: string) => {
+    const updatedCollections = await moveToTop(id);
+    if (updatedCollections) {
+      setCollections(updatedCollections);
+      return true;
+    }
+    return false;
   };
 
   const reorderCollections = async (newOrder: SavedCollection[]) => {
@@ -145,5 +155,6 @@ export function useCollections() {
     deleteCollection,
     moveCollectionToTop,
     reorderCollections,
+    isMoving, // Add this to the returned object
   };
 }
