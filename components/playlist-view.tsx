@@ -45,7 +45,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   if (!playlist) return <div>No playlist data available.</div>;
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 p-4 pt-20"> {/* Added pt-20 for top padding */}
+    <div className="flex flex-col md:flex-row gap-6"> {/* Removed p-4 pt-20 */}
       <div className="md:w-1/3 flex flex-col">
         <div className="sticky top-20"> {/* Added sticky positioning */}
           <PlaylistInfoCard playlist={playlist} type={type} />

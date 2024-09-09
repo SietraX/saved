@@ -170,7 +170,7 @@ export const SavedCollections = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4">
       <h1 className="text-2xl font-bold mb-4">Your Saved Collections</h1>
       <div className="flex space-x-2 mb-4">
         <Input
