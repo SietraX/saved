@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, KeyboardEvent, useEffect } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useDraggableList } from "@/hooks/useDraggableList";
 import { useCollections } from "@/hooks/useCollections";
-import { CollectionCard } from "@/components/collection-card";
 import { useDeleteConfirmation } from "@/hooks/useDeleteConfirmation";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { useNewCollectionInput } from '@/hooks/useNewCollectionInput';
+import { CollectionList } from "@/components/collection-list";
 
 export default function SavedCollections() {
   const router = useRouter();
@@ -23,7 +22,7 @@ export default function SavedCollections() {
     deleteCollection,
     moveCollectionToTop,
     reorderCollections,
-    isMoving, // Add this
+    isMoving,
   } = useCollections();
 
   const {
@@ -120,48 +119,16 @@ export default function SavedCollections() {
           <Plus className="mr-2 h-4 w-4" /> Create
         </Button>
       </div>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="collections" direction="horizontal">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr"
-            >
-              {sortedCollections.map((collection, index) => (
-                <Draggable
-                  key={collection.id}
-                  draggableId={collection.id}
-                  index={index}
-                  isDragDisabled={!isEditMode}
-                >
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className={`transition-shadow ${
-                        isEditMode && snapshot.isDragging ? "shadow-lg" : ""
-                      }`}
-                    >
-                      <CollectionCard
-                        collection={collection}
-                        isEditMode={isEditMode}
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                        onMoveToTop={handleMoveToTop}
-                        onClick={() => handleViewCollection(collection.id)}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-      {isMoving && <div>Moving collection...</div>} {/* Add this line to show a loading state */}
+      <CollectionList
+        collections={sortedCollections}
+        isEditMode={isEditMode}
+        onDragEnd={onDragEnd}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+        onMoveToTop={handleMoveToTop}
+        onViewCollection={handleViewCollection}
+      />
+      {isMoving && <div>Moving collection...</div>}
       <ConfirmationDialog
         isOpen={isDeleteConfirmationOpen}
         onClose={closeDeleteConfirmation}
