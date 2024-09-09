@@ -47,6 +47,7 @@ export const SavedCollections = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [originalCollections, setOriginalCollections] = useState<SavedCollection[]>([]);
 
   const {
     items: sortedCollections,
@@ -79,6 +80,7 @@ export const SavedCollections = () => {
         );
         setCollections(collectionsWithCounts);
         setSortedCollections(collectionsWithCounts);
+        setOriginalCollections(collectionsWithCounts); // Store the original order
       } else {
         const errorData = await response.json();
         console.error("Error fetching collections:", errorData);
@@ -180,13 +182,54 @@ export const SavedCollections = () => {
     router.push(`/saved-collections/${collectionId}`);
   };
 
+  const handleEnterEditMode = () => {
+    setOriginalCollections([...sortedCollections]);
+    toggleEditMode();
+  };
+
+  const handleSaveOrder = async () => {
+    try {
+      const response = await fetch('/api/saved-collections/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collections: sortedCollections }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update order on server');
+      }
+
+      setCollections(sortedCollections);
+      toggleEditMode();
+    } catch (error) {
+      console.error('Error saving order:', error);
+      // Optionally, show an error message to the user
+    }
+  };
+
+  const handleCancelEditMode = () => {
+    setSortedCollections(originalCollections);
+    toggleEditMode();
+  };
+
   return (
     <div className="space-y-6 pt-4">
       <div className="flex justify-between items-center mb-4 mt-16">
         <h1 className="text-2xl font-bold">Your Saved Collections</h1>
-        <Button onClick={toggleEditMode} variant={isEditMode ? "default" : "outline"}>
-          {isEditMode ? 'Save Order' : 'Edit Order'}
-        </Button>
+        {isEditMode ? (
+          <div className="space-x-2">
+            <Button onClick={handleSaveOrder} variant="default">
+              Save Order
+            </Button>
+            <Button onClick={handleCancelEditMode} variant="outline">
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <Button onClick={handleEnterEditMode} variant="outline">
+            Edit Order
+          </Button>
+        )}
       </div>
       <div className="flex space-x-2 mb-4">
         <Input
