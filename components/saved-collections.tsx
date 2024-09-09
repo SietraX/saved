@@ -19,6 +19,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useDraggableList } from "@/hooks/useDraggableList";
 import { useCollections } from '@/hooks/useCollections';
 import { CollectionCard } from "@/components/collection-card";
+import { useDeleteConfirmation } from '@/hooks/useDeleteConfirmation';
 
 interface SavedCollection {
   id: string;
@@ -59,6 +60,13 @@ export default function SavedCollections() {
     setSortedCollections(collections);
   }, [collections, setSortedCollections]);
 
+  const {
+    deleteId: deleteConfirmationId,
+    openDeleteConfirmation,
+    closeDeleteConfirmation,
+    isDeleteConfirmationOpen,
+  } = useDeleteConfirmation();
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -93,18 +101,18 @@ export default function SavedCollections() {
   };
 
   const handleDeleteClick = (id: string) => {
-    setDeleteId(id);
+    openDeleteConfirmation(id);
   };
 
   const handleConfirmDelete = async () => {
-    if (deleteId) {
-      await deleteCollection(deleteId);
-      setDeleteId(null);
+    if (deleteConfirmationId) {
+      await deleteCollection(deleteConfirmationId);
+      closeDeleteConfirmation();
     }
   };
 
   const handleCancelDelete = () => {
-    setDeleteId(null);
+    closeDeleteConfirmation();
   };
 
   const handleEditKeyDown = (
@@ -214,7 +222,7 @@ export default function SavedCollections() {
           )}
         </Droppable>
       </DragDropContext>
-      <AlertDialog open={deleteId !== null} onOpenChange={handleCancelDelete}>
+      <AlertDialog open={isDeleteConfirmationOpen} onOpenChange={closeDeleteConfirmation}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -226,7 +234,7 @@ export default function SavedCollections() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelDelete}>
+            <AlertDialogCancel onClick={closeDeleteConfirmation}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete}>
