@@ -10,7 +10,7 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Plus, MoreVertical, Pen, Trash, Check, X } from "lucide-react";
+import { Plus, MoreVertical, Pen, Trash, Check, X, ArrowUp } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,8 +28,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { useDraggableList } from '@/hooks/useDraggableList';
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { useDraggableList } from "@/hooks/useDraggableList";
+import { moveItemToTop } from "@/lib/utils";
 
 interface SavedCollection {
   id: string;
@@ -39,22 +40,23 @@ interface SavedCollection {
   display_order?: number;
 }
 
-export const SavedCollections = () => {
+export default function SavedCollections() {
   const router = useRouter();
-
   const [collections, setCollections] = useState<SavedCollection[]>([]);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [originalCollections, setOriginalCollections] = useState<SavedCollection[]>([]);
+  const [originalCollections, setOriginalCollections] = useState<
+    SavedCollection[]
+  >([]);
 
   const {
     items: sortedCollections,
     setItems: setSortedCollections,
     isEditMode,
     toggleEditMode,
-    onDragEnd
+    onDragEnd,
   } = useDraggableList(collections);
 
   useEffect(() => {
@@ -91,7 +93,9 @@ export const SavedCollections = () => {
   };
 
   const sortCollections = (collectionsToSort: SavedCollection[]) => {
-    return collectionsToSort.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    return collectionsToSort.sort(
+      (a, b) => (a.display_order || 0) - (b.display_order || 0)
+    );
   };
 
   const handleCreateCollection = async () => {
@@ -189,20 +193,20 @@ export const SavedCollections = () => {
 
   const handleSaveOrder = async () => {
     try {
-      const response = await fetch('/api/saved-collections/reorder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/saved-collections/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ collections: sortedCollections }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update order on server');
+        throw new Error("Failed to update order on server");
       }
 
       setCollections(sortedCollections);
       toggleEditMode();
     } catch (error) {
-      console.error('Error saving order:', error);
+      console.error("Error saving order:", error);
       // Optionally, show an error message to the user
     }
   };
@@ -210,6 +214,29 @@ export const SavedCollections = () => {
   const handleCancelEditMode = () => {
     setSortedCollections(originalCollections);
     toggleEditMode();
+  };
+
+  const handleMoveToTop = async (collectionId: string) => {
+    const updatedCollections = moveItemToTop(sortedCollections, collectionId);
+    setSortedCollections(updatedCollections);
+
+    try {
+      const response = await fetch("/api/saved-collections/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collections: updatedCollections }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update order on server");
+      }
+
+      setCollections(updatedCollections);
+    } catch (error) {
+      console.error("Error moving collection to top:", error);
+      // Optionally, show an error message to the user and revert the change
+      setSortedCollections(sortedCollections);
+    }
   };
 
   return (
@@ -247,10 +274,10 @@ export const SavedCollections = () => {
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="collections" direction="horizontal">
           {(provided) => (
-            <div 
-              {...provided.droppableProps} 
-              ref={provided.innerRef} 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr"
             >
               {sortedCollections.map((collection, index) => (
                 <Draggable
@@ -264,70 +291,63 @@ export const SavedCollections = () => {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className={`transition-shadow ${isEditMode && snapshot.isDragging ? 'shadow-lg' : ''}`}
+                      className={`transition-shadow ${
+                        isEditMode && snapshot.isDragging ? "shadow-lg" : ""
+                      }`}
                     >
-                      <Card className="flex flex-col">
+                      <Card
+                        className="flex flex-col h-full"
+                        onClick={() =>
+                          !isEditMode && handleViewCollection(collection.id)
+                        }
+                      >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          {editingId === collection.id ? (
-                            <div className="flex items-center w-full">
-                              <Input
-                                value={editName}
-                                onChange={(e) => setEditName(e.target.value)}
-                                onKeyDown={(e) => handleEditKeyDown(e, collection.id)}
-                                className="mr-2 flex-grow"
-                                autoFocus
-                              />
-                              <Button
-                                onClick={() => handleSaveEdit(collection.id)}
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8"
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                onClick={handleCancelEdit}
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <>
-                              <CardTitle className="text-sm font-medium">
-                                {collection.name}
-                              </CardTitle>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem
-                                    onClick={() =>
-                                      handleEdit(collection.id, collection.name)
-                                    }
-                                  >
-                                    <Pen className="mr-2 h-4 w-4" /> Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => handleDeleteClick(collection.id)}
-                                  >
-                                    <Trash className="mr-2 h-4 w-4" /> Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </>
+                          <CardTitle className="text-sm font-medium">
+                            {collection.name}
+                          </CardTitle>
+                          {!isEditMode && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(collection.id, collection.name);
+                                  }}
+                                >
+                                  <Pen className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMoveToTop(collection.id);
+                                  }}
+                                >
+                                  <ArrowUp className="mr-2 h-4 w-4" /> Move to Top
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteClick(collection.id);
+                                  }}
+                                >
+                                  <Trash className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           )}
                         </CardHeader>
                         <CardContent className="flex-grow">
                           <p className="text-sm text-gray-500">
                             Created on:{" "}
-                            {new Date(collection.created_at).toLocaleDateString()}
+                            {new Date(
+                              collection.created_at
+                            ).toLocaleDateString()}
                           </p>
                         </CardContent>
                         <CardFooter className="flex justify-between">
@@ -335,12 +355,17 @@ export const SavedCollections = () => {
                             {collection.videoCount} video
                             {collection.videoCount !== 1 ? "s" : ""}
                           </p>
-                          <Button
-                            variant="outline"
-                            onClick={() => handleViewCollection(collection.id)}
-                          >
-                            View Collection
-                          </Button>
+                          {!isEditMode && (
+                            <Button
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewCollection(collection.id);
+                              }}
+                            >
+                              View Collection
+                            </Button>
+                          )}
                         </CardFooter>
                       </Card>
                     </div>
@@ -375,4 +400,4 @@ export const SavedCollections = () => {
       </AlertDialog>
     </div>
   );
-};
+}
