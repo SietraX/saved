@@ -14,31 +14,34 @@ interface SavedCollection {
 export function useCollections() {
   const [collections, setCollections] = useState<SavedCollection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await fetch("/api/saved-collections");
-      if (response.ok) {
-        const data = await response.json();
-        const collectionsWithCounts = await Promise.all(
-          data.map(async (collection: SavedCollection) => {
-            const countResponse = await fetch(
-              `/api/saved-collections/${collection.id}/videos`
-            );
-            if (countResponse.ok) {
-              const { items } = await countResponse.json();
-              return { ...collection, videoCount: items.length };
-            }
-            return { ...collection, videoCount: 0 };
-          })
-        );
-        setCollections(collectionsWithCounts);
-      } else {
-        console.error("Error fetching collections:", await response.json());
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      
+      // Fetch video counts in a single API call
+      const countsResponse = await fetch("/api/saved-collections/video-counts");
+      if (!countsResponse.ok) {
+        throw new Error(`HTTP error! status: ${countsResponse.status}`);
+      }
+      const videoCounts = await countsResponse.json();
+
+      const collectionsWithCounts = data.map((collection: SavedCollection) => ({
+        ...collection,
+        videoCount: videoCounts[collection.id] || 0,
+      }));
+
+      setCollections(collectionsWithCounts);
     } catch (error) {
-      console.error("Unexpected error:", error);
+      console.error("Error fetching collections:", error);
+      setError("Failed to load collections. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -46,7 +49,7 @@ export function useCollections() {
 
   useEffect(() => {
     fetchCollections();
-  }, []); // Remove fetchCollections from the dependency array
+  }, [fetchCollections]);
 
   const createCollection = async (name: string) => {
     if (name.trim()) {
@@ -158,11 +161,13 @@ export function useCollections() {
   return {
     collections,
     isLoading,
+    error,
     createCollection,
     updateCollection,
     deleteCollection,
     moveCollectionToTop,
     reorderCollections,
-    isMoving, // Add this to the returned object
+    isMoving,
+    refetchCollections: fetchCollections, // Add this to allow manual refetching
   };
 }

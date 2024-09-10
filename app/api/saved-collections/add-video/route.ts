@@ -16,12 +16,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { videoUrl, collectionId } = await req.json();
+    const { videoId, collectionId } = await req.json();
 
-    const videoId = extractVideoId(videoUrl);
-
-    if (!videoId) {
-      return NextResponse.json({ error: "Invalid YouTube URL" }, { status: 400 });
+    if (!videoId || !collectionId) {
+      return NextResponse.json({ error: "Missing videoId or collectionId" }, { status: 400 });
     }
 
     // Check if the video already exists in the collection
@@ -76,10 +74,4 @@ export async function POST(req: NextRequest) {
     console.error("Unexpected error:", error);
     return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
   }
-}
-
-function extractVideoId(url: string): string | null {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
 }
