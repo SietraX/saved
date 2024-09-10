@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useMoveToTop } from '@/hooks/useMoveToTop';
+import { useState, useEffect, useCallback } from "react";
+import { useMoveToTop } from "@/hooks/useMoveToTop";
 
 interface SavedCollection {
   id: string;
@@ -58,7 +58,10 @@ export function useCollections() {
 
       if (response.ok) {
         const newCollection = await response.json();
-        setCollections(prev => [...prev, { ...newCollection, videoCount: 0 }]);
+        setCollections((prev) => [
+          ...prev,
+          { ...newCollection, videoCount: 0 },
+        ]);
         return newCollection;
       }
     }
@@ -75,8 +78,10 @@ export function useCollections() {
 
       if (response.ok) {
         const updatedCollection = await response.json();
-        setCollections(prev =>
-          prev.map(c => c.id === id ? { ...updatedCollection, videoCount: c.videoCount } : c)
+        setCollections((prev) =>
+          prev.map((c) =>
+            c.id === id ? { ...updatedCollection, videoCount: c.videoCount } : c
+          )
         );
         return updatedCollection;
       }
@@ -116,7 +121,10 @@ export function useCollections() {
     }
   };
 
-  const { moveToTop, isMoving } = useMoveToTop(collections, updateCollectionsOrder);
+  const { moveToTop, isMoving } = useMoveToTop(
+    collections,
+    updateCollectionsOrder
+  );
 
   const moveCollectionToTop = async (id: string) => {
     const updatedCollections = await moveToTop(id);

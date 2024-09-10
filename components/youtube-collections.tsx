@@ -38,10 +38,15 @@ export const YouTubeCollections = () => {
     pathname.includes("/playlists/") && playlistId !== "playlists";
 
   return (
-    <div className="space-y-6"> {/* Removed pt-4 */}
+    <div className="space-y-6">
+      {" "}
+      {/* Removed pt-4 */}
       <Tabs value={getActiveTab()} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="playlists" onClick={() => handleTabChange("playlists")}>
+          <TabsTrigger
+            value="playlists"
+            onClick={() => handleTabChange("playlists")}
+          >
             Playlists
           </TabsTrigger>
           <TabsTrigger value="liked">Liked Videos</TabsTrigger>

@@ -10,7 +10,10 @@ import { VideoItem } from "@/components/video-item";
 import { PlaylistControls } from "@/components/playlist-controls";
 
 export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
-  const { playlist, videos, isLoading, error, refetchVideos } = usePlaylistData(playlistId, type);
+  const { playlist, videos, isLoading, error, refetchVideos } = usePlaylistData(
+    playlistId,
+    type
+  );
   const {
     filteredVideos,
     setFilteredVideos, // Ensure this is destructured
@@ -36,7 +39,9 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   };
 
   const handleDeleteVideo = (videoId: string) => {
-    setFilteredVideos((prevVideos) => prevVideos.filter((v) => v.id !== videoId));
+    setFilteredVideos((prevVideos) =>
+      prevVideos.filter((v) => v.id !== videoId)
+    );
     refetchVideos(); // Refresh the video list after deletion
   };
 
@@ -45,9 +50,13 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   if (!playlist) return <div>No playlist data available.</div>;
 
   return (
-    <div className="flex flex-col md:flex-row gap-6"> {/* Removed p-4 pt-20 */}
+    <div className="flex flex-col md:flex-row gap-6">
+      {" "}
+      {/* Removed p-4 pt-20 */}
       <div className="md:w-1/3 flex flex-col">
-        <div className="sticky top-20"> {/* Added sticky positioning */}
+        <div className="sticky top-20">
+          {" "}
+          {/* Added sticky positioning */}
           <PlaylistInfoCard playlist={playlist} type={type} />
         </div>
       </div>
@@ -62,12 +71,16 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
           collectionId={type === "saved" ? playlistId : undefined}
           onVideoAdded={handleVideoAdded}
         />
-        <div className="mt-4"> {/* Added top margin */}
-          <div className={`${
-            type === "liked" && filterType === "shorts"
-              ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
-              : "space-y-2"
-          }`}>
+        <div className="mt-4">
+          {" "}
+          {/* Added top margin */}
+          <div
+            className={`${
+              type === "liked" && filterType === "shorts"
+                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+                : "space-y-2"
+            }`}
+          >
             {filteredVideos.map((video) => (
               <VideoItem
                 key={video.id}
@@ -88,7 +101,8 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
         videoId={selectedVideoId || ""}
         isShort={
           selectedVideoId
-            ? filteredVideos.find((v) => v.id === selectedVideoId)?.creatorContentType === "SHORTS"
+            ? filteredVideos.find((v) => v.id === selectedVideoId)
+                ?.creatorContentType === "SHORTS"
             : false
         }
       />
