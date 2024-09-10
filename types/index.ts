@@ -86,3 +86,10 @@ export type VideoItemProps = {
   onDelete?: (videoId: string) => void;
   collectionId?: string;
 };
+
+export interface SavedCollectionProps {
+  id: string;
+  name: string;
+  created_at: string;
+  videoCount: number;
+}

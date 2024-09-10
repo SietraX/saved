@@ -65,7 +65,7 @@ export function AddToCollectionModal({
         </DialogHeader>
         {isLoading ? (
           <div>Loading collections...</div>
-        ) : (
+        ) : collections ? (
           <div className="grid gap-4 py-4">
             {collections.map((collection) => (
               <Button
@@ -78,6 +78,8 @@ export function AddToCollectionModal({
               </Button>
             ))}
           </div>
+        ) : (
+          <div>No collections found.</div>
         )}
       </DialogContent>
     </Dialog>

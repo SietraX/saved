@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -25,14 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AddToCollectionModal } from "@/components/add-to-collection-modal";
 
-export const VideoItem = ({
-  video,
-  type,
-  filterType,
-  onClick,
-  onDelete,
-  collectionId,
-}: VideoItemProps) => {
+export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelete, collectionId }: VideoItemProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddToCollectionModalOpen, setIsAddToCollectionModalOpen] = useState(false);
   const { toast } = useToast();
@@ -231,4 +225,4 @@ export const VideoItem = ({
       />
     </>
   );
-};
+});

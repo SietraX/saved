@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import useSWR from 'swr';
 import { useMoveToTop } from "@/hooks/useMoveToTop";
 
 interface SavedCollection {
@@ -11,47 +12,13 @@ interface SavedCollection {
   display_order?: number;
 }
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export function useCollections() {
-  const [collections, setCollections] = useState<SavedCollection[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: collections, error, mutate } = useSWR<SavedCollection[]>('/api/saved-collections/with-counts', fetcher);
+  const [isMoving, setIsMoving] = useState(false);
 
-  const fetchCollections = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/saved-collections");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      
-      // Fetch video counts in a single API call
-      const countsResponse = await fetch("/api/saved-collections/video-counts");
-      if (!countsResponse.ok) {
-        throw new Error(`HTTP error! status: ${countsResponse.status}`);
-      }
-      const videoCounts = await countsResponse.json();
-
-      const collectionsWithCounts = data.map((collection: SavedCollection) => ({
-        ...collection,
-        videoCount: videoCounts[collection.id] || 0,
-      }));
-
-      setCollections(collectionsWithCounts);
-    } catch (error) {
-      console.error("Error fetching collections:", error);
-      setError("Failed to load collections. Please try again later.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCollections();
-  }, [fetchCollections]);
-
-  const createCollection = async (name: string) => {
+  const createCollection = useCallback(async (name: string) => {
     if (name.trim()) {
       const response = await fetch("/api/saved-collections", {
         method: "POST",
@@ -61,17 +28,14 @@ export function useCollections() {
 
       if (response.ok) {
         const newCollection = await response.json();
-        setCollections((prev) => [
-          ...prev,
-          { ...newCollection, videoCount: 0 },
-        ]);
+        mutate([...(collections || []), { ...newCollection, videoCount: 0 }]);
         return newCollection;
       }
     }
     return null;
-  };
+  }, [collections, mutate]);
 
-  const updateCollection = async (id: string, name: string) => {
+  const updateCollection = useCallback(async (id: string, name: string) => {
     if (name.trim()) {
       const response = await fetch(`/api/saved-collections/${id}`, {
         method: "PATCH",
@@ -81,8 +45,8 @@ export function useCollections() {
 
       if (response.ok) {
         const updatedCollection = await response.json();
-        setCollections((prev) =>
-          prev.map((c) =>
+        mutate(
+          collections?.map((c) =>
             c.id === id ? { ...updatedCollection, videoCount: c.videoCount } : c
           )
         );
@@ -90,55 +54,51 @@ export function useCollections() {
       }
     }
     return null;
-  };
+  }, [collections, mutate]);
 
-  const deleteCollection = async (id: string) => {
+  const deleteCollection = useCallback(async (id: string) => {
     const response = await fetch(`/api/saved-collections/${id}`, {
       method: "DELETE",
     });
 
     if (response.ok) {
-      setCollections(collections.filter((c) => c.id !== id));
+      mutate(collections?.filter((c) => c.id !== id));
       return true;
     }
     return false;
-  };
+  }, [collections, mutate]);
 
-  const updateCollectionsOrder = async (newOrder: SavedCollection[]) => {
+  const { moveToTop } = useMoveToTop(collections || [], async (newOrder) => {
     try {
       const response = await fetch("/api/saved-collections/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ collections: newOrder }),
       });
-
       if (response.ok) {
-        setCollections(newOrder);
+        mutate(newOrder);
         return true;
-      } else {
-        throw new Error("Failed to update order on server");
       }
+      return false;
     } catch (error) {
-      console.error("Error reordering collections:", error);
+      console.error("Error updating order:", error);
       return false;
     }
-  };
+  });
 
-  const { moveToTop, isMoving } = useMoveToTop(
-    collections,
-    updateCollectionsOrder
-  );
-
-  const moveCollectionToTop = async (id: string) => {
+  const moveCollectionToTop = useCallback(async (id: string) => {
+    setIsMoving(true);
     const updatedCollections = await moveToTop(id);
     if (updatedCollections) {
-      setCollections(updatedCollections);
+      mutate(updatedCollections);
+      setIsMoving(false);
       return true;
     }
+    setIsMoving(false);
     return false;
-  };
+  }, [moveToTop, mutate]);
 
-  const reorderCollections = async (newOrder: SavedCollection[]) => {
+  const reorderCollections = useCallback(async (newOrder: SavedCollection[]) => {
     try {
       const response = await fetch("/api/saved-collections/reorder", {
         method: "POST",
@@ -147,7 +107,7 @@ export function useCollections() {
       });
 
       if (response.ok) {
-        setCollections(newOrder);
+        mutate(newOrder);
         return true;
       } else {
         throw new Error("Failed to update order on server");
@@ -156,11 +116,11 @@ export function useCollections() {
       console.error("Error reordering collections:", error);
       return false;
     }
-  };
+  }, [mutate]);
 
   return {
     collections,
-    isLoading,
+    isLoading: !error && !collections,
     error,
     createCollection,
     updateCollection,
@@ -168,6 +128,6 @@ export function useCollections() {
     moveCollectionToTop,
     reorderCollections,
     isMoving,
-    refetchCollections: fetchCollections, // Add this to allow manual refetching
+    refetchCollections: mutate,
   };
 }
