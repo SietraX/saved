@@ -52,7 +52,7 @@ export const PlaylistControls = ({
       timer = setTimeout(() => {
         setIsDialogOpen(false);
         setSuccessMessage("");
-      }, 3000); // Close dialog after 3 seconds
+      }, 1000); // Close dialog after 3 seconds
     }
     return () => clearTimeout(timer);
   }, [successMessage]);
