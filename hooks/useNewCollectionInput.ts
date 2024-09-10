@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, KeyboardEvent } from 'react';
 
 export function useNewCollectionInput(createCollection: (name: string) => Promise<void>) {
