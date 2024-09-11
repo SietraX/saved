@@ -8,7 +8,7 @@ import { WatchLater } from "./watch-later";
 
 export const YouTubeCollections = () => {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '/';
 
   const getActiveTab = () => {
     if (pathname.startsWith("/playlists")) return "playlists";

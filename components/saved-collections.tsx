@@ -33,13 +33,13 @@ export default function SavedCollections() {
     saveOrder,
     cancelEditMode,
     updateItems,
-  } = useDraggableList(collections);
+  } = useDraggableList(collections ?? []);
 
   const {
     newCollectionName,
-    setNewCollectionName,
+    updateNewCollectionName,
     handleCreateCollection,
-    handleKeyPress,
+    handleKeyDown,
   } = useNewCollectionInput(async (name) => {
     await createCollection(name);
   });
@@ -52,7 +52,7 @@ export default function SavedCollections() {
   } = useDeleteConfirmation();
 
   useEffect(() => {
-    updateItems(collections);
+    updateItems(collections ?? []);
   }, [collections, updateItems]);
 
   if (isLoading) {
@@ -111,8 +111,8 @@ export default function SavedCollections() {
           type="text"
           placeholder="New collection name"
           value={newCollectionName}
-          onChange={(e) => setNewCollectionName(e.target.value)}
-          onKeyDown={handleKeyPress}
+          onChange={(e) => updateNewCollectionName(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="flex-grow"
         />
         <Button onClick={handleCreateCollection}>

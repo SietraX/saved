@@ -16,13 +16,13 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   );
   const {
     filteredVideos,
-    setFilteredVideos, // Ensure this is destructured
     searchTerm,
-    setSearchTerm,
     filterType,
-    setFilterType,
     sortOrder,
-    setSortOrder,
+    updateSearchTerm,
+    updateFilterType,
+    updateSortOrder,
+    filterVideo,
   } = useFilteredVideos(videos);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
 
@@ -39,9 +39,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   };
 
   const handleDeleteVideo = (videoId: string) => {
-    setFilteredVideos((prevVideos) =>
-      prevVideos.filter((v) => v.id !== videoId)
-    );
+    filterVideo(videoId);
     refetchVideos(); // Refresh the video list after deletion
   };
 
@@ -51,29 +49,23 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
-      {" "}
-      {/* Removed p-4 pt-20 */}
       <div className="md:w-1/3 flex flex-col">
         <div className="sticky top-20">
-          {" "}
-          {/* Added sticky positioning */}
-          <PlaylistInfoCard playlist={playlist} type={type} />
+          <PlaylistInfoCard playlist={playlist} type={type} priority={true} />
         </div>
       </div>
       <div className="md:w-2/3 flex flex-col">
         <PlaylistControls
           type={type}
           filterType={filterType}
-          setFilterType={setFilterType}
+          setFilterType={updateFilterType}
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          setSortOrder={setSortOrder}
+          setSearchTerm={updateSearchTerm}
+          setSortOrder={updateSortOrder}
           collectionId={type === "saved" ? playlistId : undefined}
           onVideoAdded={handleVideoAdded}
         />
         <div className="mt-4">
-          {" "}
-          {/* Added top margin */}
           <div
             className={`${
               type === "liked" && filterType === "shorts"

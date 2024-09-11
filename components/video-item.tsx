@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import React from 'react';
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Save, Share2, Trash2 } from "lucide-react";
+import { MoreVertical, CopyPlus, Share2, Trash2 } from "lucide-react";
 import { formatViewCount, formatDuration } from "@/lib/utils";
 import { VideoItemProps } from "@/types/index";
 import { useToast } from "@/hooks/useToast";
@@ -23,24 +24,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AddToCollectionModal } from "@/components/add-to-collection-modal";
 
-export const VideoItem = ({
-  video,
-  type,
-  filterType,
-  onClick,
-  onDelete,
-  collectionId,
-}: VideoItemProps) => {
+export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelete, collectionId }: VideoItemProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddToCollectionModalOpen, setIsAddToCollectionModalOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleSaveToCollection = () => {
-    // Implement save to collection functionality
-    console.log("Save to collection");
-  };
+  const handleAddToCollection = useCallback(() => {
+    setIsAddToCollectionModalOpen(true);
+  }, []);
 
-  const handleShare = () => {
+  const handleShare = useCallback(() => {
     const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;
     navigator.clipboard
       .writeText(videoUrl)
@@ -60,9 +55,9 @@ export const VideoItem = ({
           duration: 3000,
         });
       });
-  };
+  }, [video.id, toast]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (type === "saved" && collectionId) {
       try {
         const response = await fetch("/api/saved-collections/delete-video", {
@@ -84,7 +79,7 @@ export const VideoItem = ({
       }
     }
     setIsDeleteDialogOpen(false);
-  };
+  }, [type, collectionId, video.id, onDelete]);
 
   return (
     <>
@@ -172,11 +167,11 @@ export const VideoItem = ({
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSaveToCollection();
+                    handleAddToCollection();
                   }}
                 >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save to Collection
+                  <CopyPlus className="mr-2 h-4 w-4" />
+                  Add to Collection
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -223,6 +218,11 @@ export const VideoItem = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AddToCollectionModal
+        isOpen={isAddToCollectionModalOpen}
+        onClose={() => setIsAddToCollectionModalOpen(false)}
+        videoId={video.id}
+      />
     </>
   );
-};
+});

@@ -1,9 +1,13 @@
 "use client"
 
-import { useState, KeyboardEvent } from 'react';
+import { useState, KeyboardEvent, useCallback } from 'react';
 
 export function useNewCollectionInput(createCollection: (name: string) => Promise<void>) {
   const [newCollectionName, setNewCollectionName] = useState("");
+
+  const updateNewCollectionName = useCallback((name: string) => {
+    setNewCollectionName(name);
+  }, []);
 
   const handleCreateCollection = async () => {
     if (newCollectionName.trim()) {
@@ -12,7 +16,7 @@ export function useNewCollectionInput(createCollection: (name: string) => Promis
     }
   };
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleCreateCollection();
     }
@@ -20,8 +24,8 @@ export function useNewCollectionInput(createCollection: (name: string) => Promis
 
   return {
     newCollectionName,
-    setNewCollectionName,
+    updateNewCollectionName,
     handleCreateCollection,
-    handleKeyPress,
+    handleKeyDown,
   };
 }

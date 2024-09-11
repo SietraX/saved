@@ -1,26 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import { google } from 'googleapis';
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import { google } from "googleapis";
 
 export async function GET(req: NextRequest) {
   try {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
     if (!token?.accessToken) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const oauth2Client = new google.auth.OAuth2();
     oauth2Client.setCredentials({ access_token: token.accessToken as string });
 
     const youtube = google.youtube({
-      version: 'v3',
+      version: "v3",
       auth: oauth2Client
     });
 
+    console.log('Fetching liked videos...');
     const response = await youtube.videos.list({
-      part: ['snippet', 'statistics', 'contentDetails', 'status'],
-      myRating: 'like',
+      part: ["snippet", "statistics", "contentDetails", "status"],
+      myRating: "like",
       maxResults: 50
     });
 
@@ -59,10 +60,19 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ items: videos });
   } catch (error) {
-    console.error('Error in YouTube liked videos API:', error);
+    console.error("Error in YouTube liked videos API:", error);
     if (error instanceof Error) {
+      // Check for specific error types
+      if (error.message.includes("Invalid Credentials")) {
+        return NextResponse.json({ error: "Authentication failed. Please try signing in again." }, { status: 401 });
+      } else if (error.message.includes("quota")) {
+        return NextResponse.json({ error: "YouTube API quota exceeded. Please try again later." }, { status: 429 });
+      }
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }
