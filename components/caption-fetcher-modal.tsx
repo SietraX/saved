@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { createClient } from '@supabase/supabase-js';
 
 interface TranscriptEntry {
   text: string;
@@ -22,6 +23,10 @@ export function CaptionFetcherModal() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<TranscriptEntry[] | null>(null);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleFetchTranscript = async () => {
     setIsLoading(true);
@@ -33,14 +38,26 @@ export function CaptionFetcherModal() {
         throw new Error("Invalid YouTube URL");
       }
 
-      const response = await fetch(`http://localhost:8000/api/transcript/${videoId}`);
-      const data = await response.json();
+      // Check if transcript exists in Supabase
+      const { data, error } = await supabase
+        .from('video_transcripts')
+        .select('transcript')
+        .eq('video_id', videoId)
+        .single();
 
-      if (!response.ok) {
-        throw new Error(data.detail || "Failed to fetch transcript");
+      if (data) {
+        setTranscript(data.transcript);
+      } else {
+        // If not in Supabase, fetch from Python backend
+        const response = await fetch(`http://localhost:8000/api/transcript/${videoId}`);
+        const fetchedData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(fetchedData.detail || "Failed to fetch transcript");
+        }
+
+        setTranscript(fetchedData.transcript);
       }
-
-      setTranscript(data.transcript);
     } catch (error) {
       console.error("Error fetching transcript:", error);
       setError(error instanceof Error ? error.message : "An unknown error occurred");
