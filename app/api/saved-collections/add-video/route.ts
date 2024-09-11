@@ -16,10 +16,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { videoId, collectionId } = await req.json();
+    const body = await req.json();
+    const videoId = body.videoId;
+    const collectionId = body.collectionId;
 
     if (!videoId || !collectionId) {
-      return NextResponse.json({ error: "Missing videoId or collectionId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing videoId or collectionId" },
+        { status: 400 }
+      );
     }
 
     // Check if the video already exists in the collection
@@ -32,11 +37,17 @@ export async function POST(req: NextRequest) {
 
     if (checkError && checkError.code !== "PGRST116") {
       console.error("Supabase error:", checkError);
-      return NextResponse.json({ error: "Failed to check for existing video" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to check for existing video" },
+        { status: 500 }
+      );
     }
 
     if (existingVideo) {
-      return NextResponse.json({ error: "Video already exists in this collection" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Video already exists in this collection" },
+        { status: 409 }
+      );
     }
 
     const oauth2Client = new google.auth.OAuth2();
@@ -66,12 +77,41 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error("Supabase error:", error);
-      return NextResponse.json({ error: "Failed to add video" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to add video" },
+        { status: 500 }
+      );
     }
+
+    // Fetch and store transcript in the background
+    fetchAndStoreTranscript(videoId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 }
+    );
+  }
+}
+
+async function fetchAndStoreTranscript(videoId: string) {
+  try {
+    const response = await fetch(
+      `http://localhost:8000/api/transcript/${videoId}`
+    );
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(
+        `Failed to fetch transcript: ${errorData.detail || response.statusText}`
+      );
+    } else {
+      console.log(
+        `Successfully fetched and stored transcript for video ${videoId}`
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching and storing transcript:", error);
   }
 }

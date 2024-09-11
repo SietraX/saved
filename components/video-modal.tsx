@@ -9,8 +9,6 @@ interface VideoModalProps {
 }
 
 export function VideoModal({ isOpen, onClose, videoId, isShort }: VideoModalProps) {
-  console.log("videoId", videoId)
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={isShort ? "sm:max-w-[400px] w-11/12 p-0 overflow-hidden" : "sm:max-w-[1000px] w-11/12"}>

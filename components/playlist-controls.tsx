@@ -61,12 +61,21 @@ export const PlaylistControls = ({
     setSuccessMessage("");
 
     try {
+      const videoId = extractVideoId(videoUrl);
+      if (!videoId) {
+        throw new Error("Invalid YouTube URL");
+      }
+
+      if (!collectionId) {
+        throw new Error("Collection ID is missing");
+      }
+
       const response = await fetch("/api/saved-collections/add-video", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ videoUrl, collectionId }),
+        body: JSON.stringify({ videoId, collectionId }),
       });
       const data = await response.json();
 
@@ -87,10 +96,16 @@ export const PlaylistControls = ({
       }
     } catch (error) {
       console.error("Error adding video:", error);
-      setError("Failed to add video. Please try again.");
+      setError(error instanceof Error ? error.message : "Failed to add video. Please try again.");
     } finally {
       setIsAddingVideo(false);
     }
+  };
+
+  const extractVideoId = (url: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
   };
 
   return (

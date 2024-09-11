@@ -50,26 +50,49 @@ async def get_transcript(video_id: str):
                 "fetch_count": result.data[0]["fetch_count"] + 1,
                 "last_fetched": datetime.utcnow().isoformat()
             }).eq("video_id", video_id).execute()
-            return {"transcript": result.data[0]["transcript"]}
+            return {"transcript": result.data[0]["transcript"], "status": "existing"}
         
         # If not, fetch from YouTube and store in Supabase
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        formatted_transcript = [
-            {
-                "text": entry["text"],
-                "start": entry["start"],
-                "duration": entry["duration"]
-            }
-            for entry in transcript
-        ]
-        
-        # Fetch video details from YouTube API
-        video_response = youtube.videos().list(
-            part="snippet,contentDetails",
-            id=video_id
-        ).execute()
+        try:
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            
+            # Try to get English transcript first
+            try:
+                transcript = transcript_list.find_transcript(['en'])
+            except:
+                # If English is not available, get any available transcript
+                transcript = next(iter(transcript_list._manually_created_transcripts.values())) or next(iter(transcript_list._generated_transcripts.values()))
+            
+            # If still no transcript, raise an exception
+            if not transcript:
+                raise Exception("No transcript available for this video")
+            
+            formatted_transcript = [
+                {
+                    "text": entry["text"],
+                    "start": entry["start"],
+                    "duration": entry["duration"]
+                }
+                for entry in transcript.fetch()
+            ]
+        except Exception as youtube_error:
+            logger.error(f"Error fetching transcript from YouTube: {str(youtube_error)}")
+            raise HTTPException(status_code=404, detail=f"Transcript not found for video ID: {video_id}")
 
-        video_info = video_response['items'][0]
+        # Fetch video details from YouTube API
+        try:
+            video_response = youtube.videos().list(
+                part="snippet,contentDetails",
+                id=video_id
+            ).execute()
+
+            if not video_response.get('items'):
+                raise HTTPException(status_code=404, detail=f"Video not found for ID: {video_id}")
+
+            video_info = video_response['items'][0]
+        except Exception as youtube_api_error:
+            logger.error(f"Error fetching video details from YouTube API: {str(youtube_api_error)}")
+            raise HTTPException(status_code=500, detail="Error fetching video details")
         
         # Parse duration to seconds
         duration_iso = video_info['contentDetails']['duration']
@@ -83,17 +106,18 @@ async def get_transcript(video_id: str):
             "channel_id": video_info['snippet']['channelId'],
             "channel_title": video_info['snippet']['channelTitle'],
             "published_at": video_info['snippet']['publishedAt'],
-            "language": video_info['snippet'].get('defaultAudioLanguage', 'unknown'),
-            "is_generated": True,  # Assuming all fetched transcripts are auto-generated
+            "language": transcript.language_code,
+            "is_generated": transcript.is_generated,
             "duration": duration_seconds,
             "fetch_count": 1,
             "last_fetched": datetime.utcnow().isoformat(),
             "processing_status": "completed"
         }).execute()
         
-        return {"transcript": formatted_transcript}
+        return {"transcript": formatted_transcript, "status": "new"}
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        logger.error(f"Unexpected error in get_transcript: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
