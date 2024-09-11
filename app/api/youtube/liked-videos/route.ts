@@ -25,8 +25,6 @@ export async function GET(req: NextRequest) {
       maxResults: 50
     });
 
-    console.log('Liked videos response:', JSON.stringify(response.data, null, 2));
-
     const videos = response.data.items?.map(item => {
       const duration = item.contentDetails?.duration;
       const width = item.snippet?.thumbnails?.maxres?.width || item.snippet?.thumbnails?.standard?.width || 0;
