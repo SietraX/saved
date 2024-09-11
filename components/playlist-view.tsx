@@ -8,6 +8,7 @@ import { useFilteredVideos } from "@/hooks/useFilteredVideos";
 import { PlaylistInfoCard } from "@/components/playlist-info-card";
 import { VideoItem } from "@/components/video-item";
 import { PlaylistControls } from "@/components/playlist-controls";
+import { CaptionFetcherModal } from "@/components/caption-fetcher-modal";
 
 export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   const { playlist, videos, isLoading, error, refetchVideos } = usePlaylistData(
@@ -52,6 +53,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
       <div className="md:w-1/3 flex flex-col">
         <div className="sticky top-20">
           <PlaylistInfoCard playlist={playlist} type={type} priority={true} />
+          <CaptionFetcherModal /> {/* Add this line */}
         </div>
       </div>
       <div className="md:w-2/3 flex flex-col">
