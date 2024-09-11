@@ -1,7 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { PlaylistVideoProps, FilterType, YoutubeVideoProps } from '@/types/index';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  PlaylistVideoProps,
+  FilterType,
+  YoutubeVideoProps,
+} from "@/types/index";
 
 function normalizeVideoData(video: PlaylistVideoProps): YoutubeVideoProps {
   if ("video_id" in video) {
@@ -27,9 +31,12 @@ export function useFilteredVideos(videos: PlaylistVideoProps[]) {
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [sortOrder, setSortOrder] = useState<string>("dateAddedNewest");
 
-  const normalizedVideos = useMemo(() => videos.map(normalizeVideoData), [videos]);
+  const normalizedVideos = useMemo(
+    () => videos.map(normalizeVideoData),
+    [videos]
+  );
 
-  useEffect(() => {
+  const applyFilters = useCallback(() => {
     let filtered = normalizedVideos;
 
     if (searchTerm) {
@@ -39,18 +46,30 @@ export function useFilteredVideos(videos: PlaylistVideoProps[]) {
     }
 
     if (filterType === "videos") {
-      filtered = filtered.filter((video) => video.creatorContentType !== "SHORTS");
+      filtered = filtered.filter(
+        (video) => video.creatorContentType !== "SHORTS"
+      );
     } else if (filterType === "shorts") {
-      filtered = filtered.filter((video) => video.creatorContentType === "SHORTS");
+      filtered = filtered.filter(
+        (video) => video.creatorContentType === "SHORTS"
+      );
     }
 
     // Implement sorting logic here
     switch (sortOrder) {
       case "dateAddedNewest":
-        filtered.sort((a, b) => new Date(b.snippet.publishedAt).getTime() - new Date(a.snippet.publishedAt).getTime());
+        filtered.sort(
+          (a, b) =>
+            new Date(b.snippet.publishedAt).getTime() -
+            new Date(a.snippet.publishedAt).getTime()
+        );
         break;
       case "dateAddedOldest":
-        filtered.sort((a, b) => new Date(a.snippet.publishedAt).getTime() - new Date(b.snippet.publishedAt).getTime());
+        filtered.sort(
+          (a, b) =>
+            new Date(a.snippet.publishedAt).getTime() -
+            new Date(b.snippet.publishedAt).getTime()
+        );
         break;
       // Add more sorting cases as needed
     }
@@ -58,14 +77,34 @@ export function useFilteredVideos(videos: PlaylistVideoProps[]) {
     setFilteredVideos(filtered);
   }, [normalizedVideos, searchTerm, filterType, sortOrder]);
 
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  const updateSearchTerm = useCallback((term: string) => {
+    setSearchTerm(term);
+  }, []);
+
+  const updateFilterType = useCallback((type: FilterType) => {
+    setFilterType(type);
+  }, []);
+
+  const updateSortOrder = useCallback((order: string) => {
+    setSortOrder(order);
+  }, []);
+
+  const filterVideo = useCallback((videoId: string) => {
+    setFilteredVideos(prevVideos => prevVideos.filter(v => v.id !== videoId));
+  }, []);
+
   return {
     filteredVideos,
-    setFilteredVideos, // Add this line
     searchTerm,
-    setSearchTerm,
     filterType,
-    setFilterType,
     sortOrder,
-    setSortOrder,
+    updateSearchTerm,
+    updateFilterType,
+    updateSortOrder,
+    filterVideo,
   };
 }

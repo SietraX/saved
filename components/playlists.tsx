@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import useSWR from "swr";
 import { useSession } from "next-auth/react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/router";
+import useSWR from "swr";
+import { useCollections } from "@/hooks/useCollections";
+import { useNewCollectionInput } from "@/hooks/useNewCollectionInput";
 import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Lock, Globe, Eye } from "lucide-react";
 import Image from 'next/image';
 
@@ -30,11 +33,28 @@ interface Playlist {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const Playlists = () => {
+  const {
+    collections,
+    isLoading,
+    error,
+    createCollection,
+    deleteCollection,
+    moveCollectionToTop,
+    reorderCollections,
+  } = useCollections();
+
+  const {
+    newCollectionName,
+    updateNewCollectionName,
+    handleCreateCollection,
+    handleKeyDown,
+  } = useNewCollectionInput(createCollection);
+
   const { data: session, status } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
-  const { data, error, isLoading } = useSWR<{ items: Playlist[] }>(
+  const { data, error: swrError, isLoading: swrLoading } = useSWR<{ items: Playlist[] }>(
     status === "authenticated" ? "/api/youtube/playlists" : null,
     fetcher
   );
@@ -58,12 +78,22 @@ export const Playlists = () => {
     }
   };
 
-  if (status === "loading" || isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading playlists: {error.message}</div>;
+  if (status === "loading" || swrLoading) return <div>Loading...</div>;
+  if (error || swrError) return <div>Error loading playlists: {error?.message || swrError?.message}</div>;
   if (!data || !data.items) return <div>No playlists found.</div>;
 
   return (
     <div className="container mx-auto p-4">
+      <div className="flex space-x-2 mb-4">
+        <Input
+          type="text"
+          placeholder="New collection name"
+          value={newCollectionName}
+          onChange={(e) => updateNewCollectionName(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <Button onClick={handleCreateCollection}>Create</Button>
+      </div>
       <h1 className="text-2xl font-bold mb-4">Your Playlists</h1>
       <Input
         type="text"

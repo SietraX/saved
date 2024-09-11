@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +50,7 @@ export const PlaylistControls = ({
       timer = setTimeout(() => {
         setIsDialogOpen(false);
         setSuccessMessage("");
-      }, 1000); // Close dialog after 3 seconds
+      }, 3000); // Close dialog after 3 seconds
     }
     return () => clearTimeout(timer);
   }, [successMessage]);
@@ -63,17 +61,12 @@ export const PlaylistControls = ({
     setSuccessMessage("");
 
     try {
-      const videoId = extractVideoId(videoUrl);
-      if (!videoId) {
-        throw new Error("Invalid YouTube URL");
-      }
-
       const response = await fetch("/api/saved-collections/add-video", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ videoId, collectionId }),
+        body: JSON.stringify({ videoUrl, collectionId }),
       });
       const data = await response.json();
 
@@ -94,17 +87,10 @@ export const PlaylistControls = ({
       }
     } catch (error) {
       console.error("Error adding video:", error);
-      setError(error instanceof Error ? error.message : "Failed to add video. Please try again.");
+      setError("Failed to add video. Please try again.");
     } finally {
       setIsAddingVideo(false);
     }
-  };
-
-  // Add this function to extract videoId from URL
-  const extractVideoId = (url: string): string | null => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
   };
 
   return (

@@ -11,7 +11,6 @@ import { useDeleteConfirmation } from "@/hooks/useDeleteConfirmation";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { useNewCollectionInput } from '@/hooks/useNewCollectionInput';
 import { CollectionList } from "@/components/collection-list";
-import { SavedCollectionProps } from "@/types";
 
 export default function SavedCollections() {
   const router = useRouter();
@@ -38,9 +37,9 @@ export default function SavedCollections() {
 
   const {
     newCollectionName,
-    setNewCollectionName,
+    updateNewCollectionName,
     handleCreateCollection,
-    handleKeyPress,
+    handleKeyDown,
   } = useNewCollectionInput(async (name) => {
     await createCollection(name);
   });
@@ -112,8 +111,8 @@ export default function SavedCollections() {
           type="text"
           placeholder="New collection name"
           value={newCollectionName}
-          onChange={(e) => setNewCollectionName(e.target.value)}
-          onKeyDown={handleKeyPress}
+          onChange={(e) => updateNewCollectionName(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="flex-grow"
         />
         <Button onClick={handleCreateCollection}>
