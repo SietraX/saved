@@ -7,9 +7,10 @@ import { PlaylistDetailsProps } from "@/types/index";
 interface PlaylistInfoCardProps {
   playlist: PlaylistDetailsProps;
   type: "youtube" | "saved" | "liked";
+  priority?: boolean;
 }
 
-export const PlaylistInfoCard = ({ playlist, type }: PlaylistInfoCardProps) => {
+export const PlaylistInfoCard = ({ playlist, type, priority = false }: PlaylistInfoCardProps) => {
   const getImageUrl = (playlist: PlaylistDetailsProps) => {
     return playlist.snippet?.thumbnails?.medium?.url || "/default-playlist-image.png";
   };
@@ -28,7 +29,7 @@ export const PlaylistInfoCard = ({ playlist, type }: PlaylistInfoCardProps) => {
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             style={{ objectFit: "cover" }}
-            priority
+            priority={priority}
             className="rounded-lg"
           />
         </div>

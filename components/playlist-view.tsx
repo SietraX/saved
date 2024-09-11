@@ -51,7 +51,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
     <div className="flex flex-col md:flex-row gap-6">
       <div className="md:w-1/3 flex flex-col">
         <div className="sticky top-20">
-          <PlaylistInfoCard playlist={playlist} type={type} />
+          <PlaylistInfoCard playlist={playlist} type={type} priority={true} />
         </div>
       </div>
       <div className="md:w-2/3 flex flex-col">
