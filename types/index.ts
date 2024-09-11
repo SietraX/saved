@@ -56,6 +56,23 @@ export type FilterType = "all" | "videos" | "shorts";
 
 export type PrivacyStatus = "public" | "unlisted" | "private";
 
+export interface Playlist {
+  id: string;
+  snippet: {
+    title: string;
+    description: string;
+    thumbnails: {
+      medium: { url: string };
+    };
+  };
+  status: {
+    privacyStatus: PrivacyStatus;
+  };
+  contentDetails: {
+    itemCount: number;
+  };
+}
+
 export interface PlaylistProps {
   id: string;
   snippet: {

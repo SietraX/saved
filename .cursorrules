@@ -9,6 +9,7 @@ _Code Style and Structure_
 - Prefer iteration and modularization over code duplication.
 - Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
 - Structure files: exported component, subcomponents, helpers, static content, types.
+- Do not expose state setting logic directly to other components, encapsulate it in a hook.
 
 _Naming Conventions_
 
