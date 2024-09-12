@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("video_transcripts")
-      .select("transcript")
+      .select("transcript, published_at") // Add published_at here
       .eq("video_id", videoId)
       .single();
 

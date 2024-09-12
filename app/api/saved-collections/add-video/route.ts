@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       user_id: token.sub,
       title: videoDetails.snippet?.title,
       thumbnail_url: videoDetails.snippet?.thumbnails?.default?.url,
-      channel_title: videoDetails.snippet?.channelTitle,
+      channel_title: videoDetails.snippet?.channelTitle || null,
       published_at: videoDetails.snippet?.publishedAt,
     });
 
