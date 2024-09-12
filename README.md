@@ -1,3 +1,9 @@
+cd saved\python_backend
+python -m venv venv
+venv/Scripts/activate
+pip install -r requirements.txt
+python transcript_server.py
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

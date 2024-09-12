@@ -1,0 +1,7 @@
+fastapi==0.114.1
+uvicorn==0.30.6
+youtube-transcript-api==0.6.2
+supabase==2.7.4
+python-dotenv==1.0.1
+google-api-python-client==2.145.0
+isodate==0.6.1

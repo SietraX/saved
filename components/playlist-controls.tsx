@@ -16,6 +16,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FilterType } from "@/types/index";
+import { AdvancedSearchButton } from "@/components/advanced-search-button";
+import { AdvancedSearchModal } from "@/components/advanced-search-modal";
 
 interface PlaylistControlsProps {
   type: "youtube" | "saved" | "liked";
@@ -43,6 +45,7 @@ export const PlaylistControls = ({
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -61,12 +64,21 @@ export const PlaylistControls = ({
     setSuccessMessage("");
 
     try {
+      const videoId = extractVideoId(videoUrl);
+      if (!videoId) {
+        throw new Error("Invalid YouTube URL");
+      }
+
+      if (!collectionId) {
+        throw new Error("Collection ID is missing");
+      }
+
       const response = await fetch("/api/saved-collections/add-video", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ videoUrl, collectionId }),
+        body: JSON.stringify({ videoId, collectionId }),
       });
       const data = await response.json();
 
@@ -87,10 +99,20 @@ export const PlaylistControls = ({
       }
     } catch (error) {
       console.error("Error adding video:", error);
-      setError("Failed to add video. Please try again.");
+      setError(error instanceof Error ? error.message : "Failed to add video. Please try again.");
     } finally {
       setIsAddingVideo(false);
     }
+  };
+
+  const extractVideoId = (url: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+
+  const handleAdvancedSearchClick = () => {
+    setIsAdvancedSearchOpen(true);
   };
 
   return (
@@ -143,13 +165,16 @@ export const PlaylistControls = ({
           </Button>
         </div>
       )}
-      <Input
-        type="text"
-        placeholder="Search videos..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4"
-      />
+      <div className="flex items-center mb-4">
+        <Input
+          type="text"
+          placeholder="Search videos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-grow"
+        />
+        <AdvancedSearchButton onClick={handleAdvancedSearchClick} />
+      </div>
       <Select onValueChange={setSortOrder}>
         <SelectTrigger>
           <SelectValue placeholder="Sort by" />
@@ -166,6 +191,10 @@ export const PlaylistControls = ({
           </SelectItem>
         </SelectContent>
       </Select>
+      <AdvancedSearchModal
+        isOpen={isAdvancedSearchOpen}
+        onClose={() => setIsAdvancedSearchOpen(false)}
+      />
     </div>
   );
 };

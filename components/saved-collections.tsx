@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
@@ -11,6 +11,8 @@ import { useDeleteConfirmation } from "@/hooks/useDeleteConfirmation";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { useNewCollectionInput } from '@/hooks/useNewCollectionInput';
 import { CollectionList } from "@/components/collection-list";
+import { AdvancedSearchButton } from "@/components/advanced-search-button";
+import { AdvancedSearchModal } from "@/components/advanced-search-modal";
 
 export default function SavedCollections() {
   const router = useRouter();
@@ -50,6 +52,12 @@ export default function SavedCollections() {
     closeDeleteConfirmation,
     isDeleteConfirmationOpen,
   } = useDeleteConfirmation();
+
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
+
+  const handleAdvancedSearchClick = () => {
+    setIsAdvancedSearchOpen(true);
+  };
 
   useEffect(() => {
     updateItems(collections ?? []);
@@ -118,6 +126,7 @@ export default function SavedCollections() {
         <Button onClick={handleCreateCollection}>
           <Plus className="mr-2 h-4 w-4" /> Create
         </Button>
+        <AdvancedSearchButton onClick={handleAdvancedSearchClick} />
       </div>
       <CollectionList
         collections={sortedCollections}
@@ -137,6 +146,10 @@ export default function SavedCollections() {
         description="This action cannot be undone. This will permanently delete the collection and all its contents."
         confirmText="Delete"
         cancelText="Cancel"
+      />
+      <AdvancedSearchModal
+        isOpen={isAdvancedSearchOpen}
+        onClose={() => setIsAdvancedSearchOpen(false)}
       />
     </div>
   );
