@@ -16,6 +16,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FilterType } from "@/types/index";
+import { AdvancedSearchButton } from "@/components/advanced-search-button";
+import { AdvancedSearchModal } from "@/components/advanced-search-modal";
 
 interface PlaylistControlsProps {
   type: "youtube" | "saved" | "liked";
@@ -43,6 +45,7 @@ export const PlaylistControls = ({
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -108,6 +111,10 @@ export const PlaylistControls = ({
     return match ? match[1] : null;
   };
 
+  const handleAdvancedSearchClick = () => {
+    setIsAdvancedSearchOpen(true);
+  };
+
   return (
     <div className="bg-background">
       {type === "saved" && (
@@ -158,13 +165,16 @@ export const PlaylistControls = ({
           </Button>
         </div>
       )}
-      <Input
-        type="text"
-        placeholder="Search videos..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4"
-      />
+      <div className="flex items-center mb-4">
+        <Input
+          type="text"
+          placeholder="Search videos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-grow"
+        />
+        <AdvancedSearchButton onClick={handleAdvancedSearchClick} />
+      </div>
       <Select onValueChange={setSortOrder}>
         <SelectTrigger>
           <SelectValue placeholder="Sort by" />
@@ -181,6 +191,10 @@ export const PlaylistControls = ({
           </SelectItem>
         </SelectContent>
       </Select>
+      <AdvancedSearchModal
+        isOpen={isAdvancedSearchOpen}
+        onClose={() => setIsAdvancedSearchOpen(false)}
+      />
     </div>
   );
 };

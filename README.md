@@ -1,4 +1,6 @@
 cd saved\python_backend
+python -m venv venv
+venv/Scripts/activate
 pip install -r requirements.txt
 python transcript_server.py
 

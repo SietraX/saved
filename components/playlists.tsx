@@ -12,10 +12,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Lock, Globe, Eye } from "lucide-react";
 import Image from 'next/image';
 import { Playlist, PrivacyStatus } from "@/types/index";
+import { AdvancedSearchButton } from "@/components/advanced-search-button";
+import { AdvancedSearchModal } from "@/components/advanced-search-modal";
 
 export const Playlists = () => {
 	const { data: session, status } = useSession();
 	const [searchTerm, setSearchTerm] = useState("");
+	const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
 	const router = useRouter();
 
 	const { playlists, isLoading, error } = useYoutubePlaylists();
@@ -46,6 +49,10 @@ export const Playlists = () => {
 		}
 	};
 
+	const handleAdvancedSearchClick = () => {
+		setIsAdvancedSearchOpen(true);
+	};
+
 	if (status === "loading" || isLoading) return <div>Loading...</div>;
 	if (error) return <div>Error loading playlists: {error.message}</div>;
 	if (!playlists) return <div>No playlists found.</div>;
@@ -53,13 +60,16 @@ export const Playlists = () => {
 	return (
 		<div className="container mx-auto p-4">
 			<h1 className="text-2xl font-bold mb-4">Your Playlists</h1>
-			<Input
-				type="text"
-				placeholder="Search playlists..."
-				value={searchTerm}
-				onChange={(e) => setSearchTerm(e.target.value)}
-				className="mb-4"
-			/>
+			<div className="flex items-center mb-4">
+				<Input
+					type="text"
+					placeholder="Search playlists..."
+					value={searchTerm}
+					onChange={(e) => setSearchTerm(e.target.value)}
+					className="flex-grow"
+				/>
+				<AdvancedSearchButton onClick={handleAdvancedSearchClick} />
+			</div>
 			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
 				{filteredPlaylists.map((playlist) => (
 					<Card
@@ -89,6 +99,10 @@ export const Playlists = () => {
 					</Card>
 				))}
 			</div>
+			<AdvancedSearchModal
+				isOpen={isAdvancedSearchOpen}
+				onClose={() => setIsAdvancedSearchOpen(false)}
+			/>
 		</div>
 	);
 };

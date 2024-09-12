@@ -1,9 +1,12 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react';
-import { PlaylistDetailsProps, PlaylistVideoProps } from '@/types/index';
+import { useState, useEffect } from "react";
+import { PlaylistDetailsProps, PlaylistVideoProps } from "@/types/index";
 
-export function usePlaylistData(playlistId: string, type: "youtube" | "saved" | "liked") {
+export function usePlaylistData(
+  playlistId: string,
+  type: "youtube" | "saved" | "liked"
+) {
   const [playlist, setPlaylist] = useState<PlaylistDetailsProps | null>(null);
   const [videos, setVideos] = useState<PlaylistVideoProps[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +26,7 @@ export function usePlaylistData(playlistId: string, type: "youtube" | "saved" | 
         throw new Error(`HTTP error! status: ${response?.status}`);
       }
       const data = await response?.json();
-      
+
       // Normalize the video data to include duration for all types
       const normalizedVideos = data.items.map((video: any) => ({
         ...video,
@@ -32,12 +35,15 @@ export function usePlaylistData(playlistId: string, type: "youtube" | "saved" | 
           duration: video.contentDetails?.duration || video.duration || null,
         },
       }));
-      
+
       setVideos(normalizedVideos);
       if (type === "saved" || type === "liked") {
         setPlaylist((prev) =>
           prev
-            ? { ...prev, contentDetails: { itemCount: normalizedVideos.length } }
+            ? {
+                ...prev,
+                contentDetails: { itemCount: normalizedVideos.length },
+              }
             : null
         );
       }
@@ -59,7 +65,9 @@ export function usePlaylistData(playlistId: string, type: "youtube" | "saved" | 
       try {
         let response;
         if (type === "youtube") {
-          response = await fetch(`/api/youtube/playlist-details?id=${playlistId}`);
+          response = await fetch(
+            `/api/youtube/playlist-details?id=${playlistId}`
+          );
         } else if (type === "saved") {
           response = await fetch(`/api/saved-collections/${playlistId}`);
         } else if (type === "liked") {
