@@ -81,9 +81,10 @@ export const Playlists = () => {
 							<Image
 								src={playlist.snippet.thumbnails.medium.url}
 								alt={playlist.snippet.title}
-								layout="fill"
-								objectFit="cover"
-								className="rounded-t-lg"
+								fill
+								sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+								className="rounded-t-lg object-cover"
+								priority={playlist.id === filteredPlaylists[0].id}
 							/>
 							<div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
 								{playlist.contentDetails.itemCount} videos
