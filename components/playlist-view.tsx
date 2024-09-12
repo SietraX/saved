@@ -9,6 +9,7 @@ import { PlaylistInfoCard } from "@/components/playlist-info-card";
 import { VideoItem } from "@/components/video-item";
 import { PlaylistControls } from "@/components/playlist-controls";
 import { CaptionFetcherModal } from "@/components/caption-fetcher-modal";
+import { AdvancedSearchContainer } from "@/components/advanced-search-container";
 
 export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   const { playlist, videos, isLoading, error, refetchVideos } = usePlaylistData(
@@ -26,6 +27,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
     filterVideo,
   } = useFilteredVideos(videos);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
 
   const handleVideoClick = (videoId: string) => {
     setSelectedVideoId(videoId);
@@ -42,6 +44,10 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   const handleDeleteVideo = (videoId: string) => {
     filterVideo(videoId);
     refetchVideos(); // Refresh the video list after deletion
+  };
+
+  const handleAdvancedSearchClick = () => {
+    setIsAdvancedSearchOpen(true);
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -66,6 +72,7 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
           setSortOrder={updateSortOrder}
           collectionId={type === "saved" ? playlistId : undefined}
           onVideoAdded={handleVideoAdded}
+          onAdvancedSearchClick={handleAdvancedSearchClick}
         />
         <div className="mt-4">
           <div
@@ -89,16 +96,9 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
           </div>
         </div>
       </div>
-      <VideoModal
-        isOpen={!!selectedVideoId}
-        onClose={handleCloseModal}
-        videoId={selectedVideoId || ""}
-        isShort={
-          selectedVideoId
-            ? filteredVideos.find((v) => v.id === selectedVideoId)
-                ?.creatorContentType === "SHORTS"
-            : false
-        }
+      <AdvancedSearchContainer
+        isOpen={isAdvancedSearchOpen}
+        onClose={() => setIsAdvancedSearchOpen(false)}
       />
     </div>
   );

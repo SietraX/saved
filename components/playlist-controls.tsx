@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { FilterType } from "@/types/index";
 import { AdvancedSearchButton } from "@/components/advanced-search-button";
-import { AdvancedSearchModal } from "@/components/advanced-search-modal";
 
 interface PlaylistControlsProps {
   type: "youtube" | "saved" | "liked";
@@ -28,9 +27,10 @@ interface PlaylistControlsProps {
   setSortOrder: (sortOrder: string) => void;
   collectionId?: string;
   onVideoAdded?: () => void;
+  onAdvancedSearchClick: () => void;
 }
 
-export const PlaylistControls = ({
+export const PlaylistControls: React.FC<PlaylistControlsProps> = ({
   type,
   filterType,
   setFilterType,
@@ -39,13 +39,13 @@ export const PlaylistControls = ({
   setSortOrder,
   collectionId,
   onVideoAdded,
-}: PlaylistControlsProps) => {
+  onAdvancedSearchClick,
+}) => {
   const [videoUrl, setVideoUrl] = useState("");
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -112,7 +112,7 @@ export const PlaylistControls = ({
   };
 
   const handleAdvancedSearchClick = () => {
-    setIsAdvancedSearchOpen(true);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -173,7 +173,7 @@ export const PlaylistControls = ({
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-grow"
         />
-        <AdvancedSearchButton onClick={handleAdvancedSearchClick} />
+        <AdvancedSearchButton onClick={onAdvancedSearchClick} />
       </div>
       <Select onValueChange={setSortOrder}>
         <SelectTrigger>
@@ -191,10 +191,6 @@ export const PlaylistControls = ({
           </SelectItem>
         </SelectContent>
       </Select>
-      <AdvancedSearchModal
-        isOpen={isAdvancedSearchOpen}
-        onClose={() => setIsAdvancedSearchOpen(false)}
-      />
     </div>
   );
 };

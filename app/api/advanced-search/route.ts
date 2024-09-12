@@ -15,6 +15,7 @@ interface VideoTranscript {
   video_id: string;
   title: string;
   transcript: TranscriptSegment[];
+  thumbnail_url: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -23,8 +24,13 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("video_transcripts")
-      .select("video_id, title, transcript")
-      .textSearch('transcript_search', searchTerm, {
+      .select(`
+        video_id,
+        title,
+        transcript,
+        videos!video_transcripts_video_uuid_fkey(thumbnail_url)
+      `)
+      .textSearch('transcript_search', `'${searchTerm}'`, {
         type: 'plain',
         config: 'english'
       });
@@ -34,15 +40,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to perform search" }, { status: 500 });
     }
 
-    // Process the results to include timestamps and matched text
-    const processedResults = (data as VideoTranscript[]).map(item => {
-      const matchedSegments = item.transcript.filter(segment =>
-        segment.text.toLowerCase().includes(searchTerm.toLowerCase())
+    const processedResults = (data as any[]).map(item => {
+      const matchedSegments = item.transcript.filter((segment: TranscriptSegment) =>
+        segment.text.toLowerCase().split(/\s+/).includes(searchTerm.toLowerCase())
       );
       return {
         videoId: item.video_id,
         title: item.title,
-        matches: matchedSegments.map(segment => ({
+        thumbnailUrl: item.videos?.thumbnail_url,
+        matches: matchedSegments.map((segment: TranscriptSegment) => ({
           text: segment.text,
           timestamp: segment.start
         }))

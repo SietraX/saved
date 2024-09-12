@@ -14,6 +14,7 @@ import Image from 'next/image';
 import { Playlist, PrivacyStatus } from "@/types/index";
 import { AdvancedSearchButton } from "@/components/advanced-search-button";
 import { AdvancedSearchModal } from "@/components/advanced-search-modal";
+import { AdvancedSearchContainer } from "@/components/advanced-search-container";
 
 export const Playlists = () => {
 	const { data: session, status } = useSession();
@@ -70,6 +71,10 @@ export const Playlists = () => {
 				/>
 				<AdvancedSearchButton onClick={handleAdvancedSearchClick} />
 			</div>
+			<AdvancedSearchContainer
+				isOpen={isAdvancedSearchOpen}
+				onClose={() => setIsAdvancedSearchOpen(false)}
+			/>
 			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
 				{filteredPlaylists.map((playlist) => (
 					<Card
@@ -100,10 +105,6 @@ export const Playlists = () => {
 					</Card>
 				))}
 			</div>
-			<AdvancedSearchModal
-				isOpen={isAdvancedSearchOpen}
-				onClose={() => setIsAdvancedSearchOpen(false)}
-			/>
 		</div>
 	);
 };

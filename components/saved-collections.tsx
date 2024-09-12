@@ -12,7 +12,7 @@ import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { useNewCollectionInput } from '@/hooks/useNewCollectionInput';
 import { CollectionList } from "@/components/collection-list";
 import { AdvancedSearchButton } from "@/components/advanced-search-button";
-import { AdvancedSearchModal } from "@/components/advanced-search-modal";
+import { AdvancedSearchContainer } from "@/components/advanced-search-container";
 
 export default function SavedCollections() {
   const router = useRouter();
@@ -147,7 +147,7 @@ export default function SavedCollections() {
         confirmText="Delete"
         cancelText="Cancel"
       />
-      <AdvancedSearchModal
+      <AdvancedSearchContainer
         isOpen={isAdvancedSearchOpen}
         onClose={() => setIsAdvancedSearchOpen(false)}
       />
