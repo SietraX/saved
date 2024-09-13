@@ -42,6 +42,20 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
   const playerRef = useRef<YT.Player | null>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
+  // Add this new useEffect hook
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset state when the modal is closed
+      setSearchTerm("");
+      setSearchResults([]);
+      setSelectedVideo(null);
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
