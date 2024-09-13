@@ -136,6 +136,11 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                }
+              }}
               placeholder="Enter search term..."
               className="flex-grow"
             />
