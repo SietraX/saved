@@ -38,14 +38,12 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<SearchResult | null>(null);
   const playerRefs = useRef<{ [key: string]: YT.Player }>({});
 
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm("");
       setSearchResults([]);
-      setSelectedVideo(null);
       Object.values(playerRefs.current).forEach(player => player.destroy());
       playerRefs.current = {};
     }
@@ -179,42 +177,44 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
             </Button>
           </div>
           <ScrollArea className="flex-grow">
-            {searchResults.map((result, index) => (
-              <div key={result.videoId} className="mb-8">
-                <div className="flex space-x-4">
-                  <div className="w-1/2">
-                    <h3 className="font-semibold text-lg mb-2">{result.title}</h3>
-                    <div className="relative w-full pt-[56.25%]">
-                      <div 
-                        id={`player-${result.videoId}`}
-                        className="absolute top-0 left-0 w-full h-full"
-                      ></div>
+            {searchResults.map((result) => {
+              return (
+                <div key={result.videoId} className="mb-8">
+                  <h3 className="font-semibold text-lg mb-4">{result.title}</h3>
+                  <div className="flex flex-col md:flex-row md:space-x-4">
+                    <div className="w-full md:w-1/2 mb-4 md:mb-0">
+                      <div className="relative w-full pt-[56.25%]">
+                        <div 
+                          id={`player-${result.videoId}`}
+                          className="absolute top-0 left-0 w-full h-full"
+                        ></div>
+                      </div>
+                    </div>
+                    <div className="w-full md:w-1/2">
+                      <h4 className="font-medium mb-2 text-lg">Transcript Matches:</h4>
+                      <ScrollArea className="h-[200px] md:h-[calc(56.25vw*0.45)] border rounded-lg">
+                        <div className="p-4">
+                          <ul className="space-y-3">
+                            {result.matches.map((match, matchIndex) => (
+                              <li key={matchIndex} className="text-sm">
+                                <Button
+                                  variant="link"
+                                  className="p-0 h-auto font-normal hover:underline"
+                                  onClick={() => handleTimestampClick(result.videoId, match.timestamp)}
+                                >
+                                  <span className="text-blue-500 font-medium mr-2">{formatTime(match.timestamp)}</span>
+                                </Button>
+                                <span className="text-gray-700">{match.text}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </ScrollArea>
                     </div>
                   </div>
-                  <div className="w-1/2">
-                    <h4 className="font-medium mb-2 text-lg">Transcript Matches:</h4>
-                    <ScrollArea className="h-[calc(56.25vw*0.45)] border rounded-lg">
-                      <div className="p-4">
-                        <ul className="space-y-3">
-                          {result.matches.map((match, matchIndex) => (
-                            <li key={matchIndex} className="text-sm">
-                              <Button
-                                variant="link"
-                                className="p-0 h-auto font-normal hover:underline"
-                                onClick={() => handleTimestampClick(result.videoId, match.timestamp)}
-                              >
-                                <span className="text-blue-500 font-medium mr-2">{formatTime(match.timestamp)}</span>
-                              </Button>
-                              <span className="text-gray-700">{match.text}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </ScrollArea>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </ScrollArea>
         </div>
       </DialogContent>
