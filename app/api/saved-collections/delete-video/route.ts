@@ -17,14 +17,40 @@ export async function DELETE(req: NextRequest) {
 
     const { videoId, collectionId } = await req.json();
 
-    const { error } = await supabase
+    // Delete the video from the collection
+    const { error: deleteError } = await supabase
       .from("saved_collection_videos")
       .delete()
       .match({ video_id: videoId, collection_id: collectionId, user_id: token.sub });
 
-    if (error) {
-      console.error("Supabase error:", error);
+    if (deleteError) {
+      console.error("Supabase error:", deleteError);
       return NextResponse.json({ error: "Failed to delete video" }, { status: 500 });
+    }
+
+    // Check if the video exists in any other collections
+    const { data: existingVideos, error: checkError } = await supabase
+      .from("saved_collection_videos")
+      .select("id")
+      .eq("video_id", videoId)
+      .limit(1);
+
+    if (checkError) {
+      console.error("Supabase error:", checkError);
+      return NextResponse.json({ error: "Failed to check video existence" }, { status: 500 });
+    }
+
+    // If the video doesn't exist in any other collections, delete its transcript
+    if (existingVideos.length === 0) {
+      const { error: transcriptDeleteError } = await supabase
+        .from("video_transcripts")
+        .delete()
+        .eq("video_id", videoId);
+
+      if (transcriptDeleteError) {
+        console.error("Supabase error:", transcriptDeleteError);
+        return NextResponse.json({ error: "Failed to delete transcript" }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ success: true });
