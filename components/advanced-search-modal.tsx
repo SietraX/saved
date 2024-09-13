@@ -69,6 +69,19 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
   const handleSearch = async () => {
     setIsLoading(true);
     try {
+      // Stop and destroy all existing players
+      Object.values(playerRefs.current).forEach(player => {
+        if (player.stopVideo) {
+          player.stopVideo();
+        }
+        if (player.destroy) {
+          player.destroy();
+        }
+      });
+
+      // Clear existing player references
+      playerRefs.current = {};
+
       const response = await fetch("/api/advanced-search", {
         method: "POST",
         headers: {
@@ -78,7 +91,6 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
       });
       const data = await response.json();
       setSearchResults(data.results);
-      setSelectedVideo(null);
     } catch (error) {
       console.error("Error performing advanced search:", error);
     } finally {
@@ -95,13 +107,26 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
           modestbranding: 1,
           rel: 0,
         },
+        events: {
+          'onReady': (event: YT.PlayerEvent) => {
+            // Ensure the video is stopped when it's ready
+            event.target.stopVideo();
+          },
+        },
       });
     }
   };
 
   useEffect(() => {
+    // Reinitialize players after search results update
     searchResults.forEach((result) => {
-      initializePlayer(result.videoId, `player-${result.videoId}`);
+      const containerId = `player-${result.videoId}`;
+      const container = document.getElementById(containerId);
+      if (container) {
+        // Clear the container before initializing new player
+        container.innerHTML = '';
+        initializePlayer(result.videoId, containerId);
+      }
     });
   }, [searchResults]);
 
