@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -68,9 +69,12 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
         playerRef.current.loadVideoById(selectedVideo.videoId);
       } else {
         playerRef.current = new window.YT.Player(playerContainerRef.current, {
-          height: '360',
-          width: '640',
           videoId: selectedVideo.videoId,
+          playerVars: {
+            autoplay: 0,
+            modestbranding: 1,
+            rel: 0,
+          },
           events: {
             'onReady': onPlayerReady,
           },
@@ -130,6 +134,9 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
       <DialogContent className="sm:max-w-[900px] h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Advanced Search</DialogTitle>
+          <DialogDescription>
+            Search for specific content within videos and view transcript matches.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col h-full space-y-4 overflow-hidden">
           <div className="flex items-center space-x-2">
@@ -152,7 +159,12 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
             <div className="flex flex-col lg:flex-row h-full space-y-4 lg:space-y-0 lg:space-x-4 overflow-hidden">
               <div className="lg:w-1/2 flex flex-col">
                 <h3 className="font-semibold mb-2 text-lg">{selectedVideo.title}</h3>
-                <div className="aspect-video bg-gray-100 rounded-lg" ref={playerContainerRef}></div>
+                <div className="relative w-full pt-[56.25%]">
+                  <div 
+                    ref={playerContainerRef}
+                    className="absolute top-0 left-0 w-full h-full"
+                  ></div>
+                </div>
               </div>
               <div className="lg:w-1/2 flex flex-col overflow-hidden">
                 <h4 className="font-medium mb-2 text-lg">Transcript Matches:</h4>
