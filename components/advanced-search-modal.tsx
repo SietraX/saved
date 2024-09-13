@@ -77,30 +77,6 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     }
   }, [selectedVideo]);
 
-  const initializePlayer = () => {
-    if (selectedVideo && playerContainerRef.current && window.YT) {
-      if (playerRef.current) {
-        playerRef.current.loadVideoById(selectedVideo.videoId);
-      } else {
-        playerRef.current = new window.YT.Player(playerContainerRef.current, {
-          videoId: selectedVideo.videoId,
-          playerVars: {
-            autoplay: 0,
-            modestbranding: 1,
-            rel: 0,
-          },
-          events: {
-            'onReady': onPlayerReady,
-          },
-        });
-      }
-    }
-  };
-
-  const onPlayerReady = (event: YT.PlayerEvent) => {
-    // Player is ready
-  };
-
   const handleSearch = async () => {
     setIsLoading(true);
     try {
@@ -113,6 +89,14 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
       });
       const data = await response.json();
       setSearchResults(data.results);
+      
+      // Reset the player and selected video before setting new results
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+      setSelectedVideo(null);
+      
       if (data.results.length > 0) {
         setSelectedVideo(data.results[0]);
       }
@@ -121,6 +105,36 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const initializePlayer = () => {
+    if (selectedVideo && playerContainerRef.current && window.YT) {
+      if (playerRef.current) {
+        playerRef.current.loadVideoById({
+          videoId: selectedVideo.videoId,
+          startSeconds: 0,
+          suggestedQuality: 'default'
+        });
+        playerRef.current.stopVideo(); // Stop the video after loading
+      } else {
+        playerRef.current = new window.YT.Player(playerContainerRef.current, {
+          videoId: selectedVideo.videoId,
+          playerVars: {
+            autoplay: 0, // Ensure autoplay is off
+            modestbranding: 1,
+            rel: 0,
+          },
+          events: {
+            'onReady': onPlayerReady,
+          },
+        });
+      }
+    }
+  };
+
+  const onPlayerReady = (event: YT.PlayerEvent) => {
+    // Ensure the video is paused when the player is ready
+    event.target.pauseVideo();
   };
 
   const handleTimestampClick = (timestamp: number) => {
