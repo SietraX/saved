@@ -44,13 +44,14 @@ export async function DELETE(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { error } = await supabase
-    .from("saved_collections")
-    .delete()
-    .eq("id", params.id)
-    .eq("user_id", token.sub);
+  // Start a Supabase transaction
+  const { data, error } = await supabase.rpc('delete_collection_and_videos', {
+    p_collection_id: params.id,
+    p_user_id: token.sub
+  });
 
   if (error) {
+    console.error("Error deleting collection and videos:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
