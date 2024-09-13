@@ -6,9 +6,12 @@ interface VideoModalProps {
   onClose: () => void;
   videoId: string;
   isShort: boolean;
+  startTime?: number;
 }
 
-export function VideoModal({ isOpen, onClose, videoId, isShort }: VideoModalProps) {
+export function VideoModal({ isOpen, onClose, videoId, isShort, startTime = 0 }: VideoModalProps) {
+  const videoSrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}`;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={isShort ? "sm:max-w-[400px] w-11/12 p-0 overflow-hidden" : "sm:max-w-[1000px] w-11/12"}>
@@ -27,7 +30,7 @@ export function VideoModal({ isOpen, onClose, videoId, isShort }: VideoModalProp
               <X size={24} />
             </button>
             <iframe
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+              src={videoSrc}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               className="w-full h-full"
@@ -36,7 +39,7 @@ export function VideoModal({ isOpen, onClose, videoId, isShort }: VideoModalProp
         ) : (
           <div className="aspect-video">
             <iframe
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+              src={videoSrc}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               className="w-full h-full"
