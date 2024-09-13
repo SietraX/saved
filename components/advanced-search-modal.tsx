@@ -39,20 +39,15 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<SearchResult | null>(null);
-  const playerRef = useRef<YT.Player | null>(null);
-  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const playerRefs = useRef<{ [key: string]: YT.Player }>({});
 
-  // Add this new useEffect hook
   useEffect(() => {
     if (!isOpen) {
-      // Reset state when the modal is closed
       setSearchTerm("");
       setSearchResults([]);
       setSelectedVideo(null);
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
+      Object.values(playerRefs.current).forEach(player => player.destroy());
+      playerRefs.current = {};
     }
   }, [isOpen]);
 
@@ -62,20 +57,14 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
 
-    window.onYouTubeIframeAPIReady = initializePlayer;
+    window.onYouTubeIframeAPIReady = () => {
+      // YouTube API is ready
+    };
 
     return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-      }
+      Object.values(playerRefs.current).forEach(player => player.destroy());
     };
   }, []);
-
-  useEffect(() => {
-    if (selectedVideo) {
-      initializePlayer();
-    }
-  }, [selectedVideo]);
 
   const handleSearch = async () => {
     setIsLoading(true);
@@ -89,17 +78,7 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
       });
       const data = await response.json();
       setSearchResults(data.results);
-      
-      // Reset the player and selected video before setting new results
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
       setSelectedVideo(null);
-      
-      if (data.results.length > 0) {
-        setSelectedVideo(data.results[0]);
-      }
     } catch (error) {
       console.error("Error performing advanced search:", error);
     } finally {
@@ -107,40 +86,30 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     }
   };
 
-  const initializePlayer = () => {
-    if (selectedVideo && playerContainerRef.current && window.YT) {
-      if (playerRef.current) {
-        playerRef.current.loadVideoById({
-          videoId: selectedVideo.videoId,
-          startSeconds: 0,
-          suggestedQuality: 'default'
-        });
-        playerRef.current.stopVideo(); // Stop the video after loading
-      } else {
-        playerRef.current = new window.YT.Player(playerContainerRef.current, {
-          videoId: selectedVideo.videoId,
-          playerVars: {
-            autoplay: 0, // Ensure autoplay is off
-            modestbranding: 1,
-            rel: 0,
-          },
-          events: {
-            'onReady': onPlayerReady,
-          },
-        });
-      }
+  const initializePlayer = (videoId: string, containerId: string) => {
+    if (window.YT && !playerRefs.current[videoId]) {
+      playerRefs.current[videoId] = new window.YT.Player(containerId, {
+        videoId: videoId,
+        playerVars: {
+          autoplay: 0,
+          modestbranding: 1,
+          rel: 0,
+        },
+      });
     }
   };
 
-  const onPlayerReady = (event: YT.PlayerEvent) => {
-    // Ensure the video is paused when the player is ready
-    event.target.pauseVideo();
-  };
+  useEffect(() => {
+    searchResults.forEach((result) => {
+      initializePlayer(result.videoId, `player-${result.videoId}`);
+    });
+  }, [searchResults]);
 
-  const handleTimestampClick = (timestamp: number) => {
-    if (playerRef.current && playerRef.current.seekTo) {
-      playerRef.current.seekTo(timestamp, true);
-      playerRef.current.playVideo();
+  const handleTimestampClick = (videoId: string, timestamp: number) => {
+    const player = playerRefs.current[videoId];
+    if (player && player.seekTo) {
+      player.seekTo(timestamp, true);
+      player.playVideo();
     }
   };
 
@@ -157,17 +126,18 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
       return `0:${remainingSeconds.toString().padStart(2, '0')}`;
     }
   };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px] h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-[900px] h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Advanced Search</DialogTitle>
           <DialogDescription>
             Search for specific content within videos and view transcript matches.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col h-full space-y-4 overflow-hidden">
-          <div className="flex items-center space-x-2">
+        <div className="flex flex-col flex-grow overflow-hidden">
+          <div className="flex items-center space-x-2 mb-4">
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -183,50 +153,44 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
               {isLoading ? "Searching..." : "Search"}
             </Button>
           </div>
-          {selectedVideo && (
-            <div className="flex flex-col lg:flex-row h-full space-y-4 lg:space-y-0 lg:space-x-4 overflow-hidden">
-              <div className="lg:w-1/2 flex flex-col">
-                <h3 className="font-semibold mb-2 text-lg">{selectedVideo.title}</h3>
-                <div className="relative w-full pt-[56.25%]">
-                  <div 
-                    ref={playerContainerRef}
-                    className="absolute top-0 left-0 w-full h-full"
-                  ></div>
+          <ScrollArea className="flex-grow">
+            {searchResults.map((result, index) => (
+              <div key={result.videoId} className="mb-8">
+                <div className="flex space-x-4">
+                  <div className="w-1/2">
+                    <h3 className="font-semibold text-lg mb-2">{result.title}</h3>
+                    <div className="relative w-full pt-[56.25%]">
+                      <div 
+                        id={`player-${result.videoId}`}
+                        className="absolute top-0 left-0 w-full h-full"
+                      ></div>
+                    </div>
+                  </div>
+                  <div className="w-1/2">
+                    <h4 className="font-medium mb-2 text-lg">Transcript Matches:</h4>
+                    <ScrollArea className="h-[calc(56.25vw*0.45)] border rounded-lg">
+                      <div className="p-4">
+                        <ul className="space-y-3">
+                          {result.matches.map((match, matchIndex) => (
+                            <li key={matchIndex} className="text-sm">
+                              <Button
+                                variant="link"
+                                className="p-0 h-auto font-normal hover:underline"
+                                onClick={() => handleTimestampClick(result.videoId, match.timestamp)}
+                              >
+                                <span className="text-blue-500 font-medium mr-2">{formatTime(match.timestamp)}</span>
+                              </Button>
+                              <span className="text-gray-700">{match.text}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </ScrollArea>
+                  </div>
                 </div>
               </div>
-              <div className="lg:w-1/2 flex flex-col overflow-hidden">
-                <h4 className="font-medium mb-2 text-lg">Transcript Matches:</h4>
-                <ScrollArea className="flex-grow border rounded-lg p-4">
-                  <ul className="space-y-3">
-                    {selectedVideo.matches.map((match, matchIndex) => (
-                      <li key={matchIndex} className="text-sm">
-                        <Button
-                          variant="link"
-                          className="p-0 h-auto font-normal hover:underline"
-                          onClick={() => handleTimestampClick(match.timestamp)}
-                        >
-                          <span className="text-blue-500 font-medium mr-2">{formatTime(match.timestamp)}</span>
-                        </Button>
-                        <span className="text-gray-700">{match.text}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </ScrollArea>
-              </div>
-            </div>
-          )}
-          {!selectedVideo && searchResults.length > 0 && (
-            <ScrollArea className="flex-grow border rounded-lg p-4">
-              {searchResults.map((result, index) => (
-                <div key={index} className="mb-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <h4 className="font-medium text-lg mb-2">{result.title}</h4>
-                  <Button onClick={() => setSelectedVideo(result)} variant="link" className="p-0 text-blue-500 hover:underline">
-                    View Results
-                  </Button>
-                </div>
-              ))}
-            </ScrollArea>
-          )}
+            ))}
+          </ScrollArea>
         </div>
       </DialogContent>
     </Dialog>
