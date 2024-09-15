@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
@@ -34,7 +34,10 @@ declare global {
   }
 }
 
-export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProps) => {
+export const AdvancedSearchModal = ({
+  isOpen,
+  onClose,
+}: AdvancedSearchModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -43,7 +46,7 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
   const [isYouTubeApiReady, setIsYouTubeApiReady] = useState(false);
 
   const cleanupPlayers = useCallback(() => {
-    Object.values(playerRefs.current).forEach(player => {
+    Object.values(playerRefs.current).forEach((player) => {
       if (player && player.destroy) {
         try {
           player.destroy();
@@ -66,9 +69,9 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
 
   useEffect(() => {
     if (!window.YT) {
-      const tag = document.createElement('script');
+      const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName('script')[0];
+      const firstScriptTag = document.getElementsByTagName("script")[0];
       firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
 
       window.onYouTubeIframeAPIReady = () => {
@@ -104,27 +107,30 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     }
   };
 
-  const initializePlayer = useCallback((videoId: string, containerId: string) => {
-    if (isYouTubeApiReady && !playerRefs.current[videoId]) {
-      const container = document.getElementById(containerId);
-      if (container) {
-        container.innerHTML = '';
-        playerRefs.current[videoId] = new window.YT.Player(containerId, {
-          videoId: videoId,
-          playerVars: {
-            autoplay: 0,
-            modestbranding: 1,
-            rel: 0,
-          },
-          events: {
-            'onReady': (event: YT.PlayerEvent) => {
-              event.target.stopVideo();
+  const initializePlayer = useCallback(
+    (videoId: string, containerId: string) => {
+      if (isYouTubeApiReady && !playerRefs.current[videoId]) {
+        const container = document.getElementById(containerId);
+        if (container) {
+          container.innerHTML = "";
+          playerRefs.current[videoId] = new window.YT.Player(containerId, {
+            videoId: videoId,
+            playerVars: {
+              autoplay: 0,
+              modestbranding: 1,
+              rel: 0,
             },
-          },
-        });
+            events: {
+              onReady: (event: YT.PlayerEvent) => {
+                event.target.stopVideo();
+              },
+            },
+          });
+        }
       }
-    }
-  }, [isYouTubeApiReady]);
+    },
+    [isYouTubeApiReady]
+  );
 
   useEffect(() => {
     if (isYouTubeApiReady) {
@@ -139,11 +145,21 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     const player = playerRefs.current[videoId];
     if (player && player.seekTo && player.playVideo) {
       try {
-        if (activePlayer && activePlayer !== player && activePlayer.pauseVideo) {
+        if (
+          activePlayer &&
+          activePlayer !== player &&
+          activePlayer.pauseVideo
+        ) {
           activePlayer.pauseVideo();
         }
-        player.seekTo(timestamp, true);
+        // First, seek to the timestamp without allowing seek ahead
+        player.seekTo(timestamp, false);
+        // Then play the video
         player.playVideo();
+        // After a short delay, seek again with allowSeekAhead set to true
+        setTimeout(() => {
+          player.seekTo(timestamp, true);
+        }, 1000);
         setActivePlayer(player);
       } catch (error) {
         console.error("Error interacting with YouTube player:", error);
@@ -157,11 +173,13 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     const remainingSeconds = Math.round(seconds % 60);
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${remainingSeconds
+        .toString()
+        .padStart(2, "0")}`;
     } else if (minutes > 0) {
-      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+      return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
     } else {
-      return `0:${remainingSeconds.toString().padStart(2, '0')}`;
+      return `0:${remainingSeconds.toString().padStart(2, "0")}`;
     }
   };
 
@@ -169,9 +187,12 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[900px] h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Advanced Search</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            Advanced Search
+          </DialogTitle>
           <DialogDescription>
-            Search for specific content within videos and view transcript matches.
+            Search for specific content within videos and view transcript
+            matches.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col flex-grow overflow-hidden">
@@ -180,7 +201,7 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !isSearching) {
+                if (e.key === "Enter" && !isSearching) {
                   handleSearch();
                 }
               }}
@@ -188,9 +209,9 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
               className="flex-grow"
               disabled={isSearching}
             />
-            <Button 
-              onClick={handleSearch} 
-              disabled={isSearching || !searchTerm.trim()} 
+            <Button
+              onClick={handleSearch}
+              disabled={isSearching || !searchTerm.trim()}
               className="min-w-[100px]"
             >
               {isSearching ? "Searching..." : "Search"}
@@ -204,14 +225,16 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
                   <div className="flex flex-col md:flex-row md:space-x-4">
                     <div className="w-full md:w-1/2 mb-4 md:mb-0">
                       <div className="relative w-full pt-[56.25%]">
-                        <div 
+                        <div
                           id={`player-${result.videoId}`}
                           className="absolute top-0 left-0 w-full h-full"
                         ></div>
                       </div>
                     </div>
                     <div className="w-full md:w-1/2">
-                      <h4 className="font-medium mb-2 text-lg">Transcript Matches:</h4>
+                      <h4 className="font-medium mb-2 text-lg">
+                        Transcript Matches:
+                      </h4>
                       <ScrollArea className="h-[200px] md:h-[calc(56.25vw*0.45)] border rounded-lg">
                         <div className="p-4">
                           <ul className="space-y-3">
@@ -220,11 +243,20 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
                                 <Button
                                   variant="link"
                                   className="p-0 h-auto font-normal hover:underline"
-                                  onClick={() => handleTimestampClick(result.videoId, match.timestamp)}
+                                  onClick={() =>
+                                    handleTimestampClick(
+                                      result.videoId,
+                                      match.timestamp
+                                    )
+                                  }
                                 >
-                                  <span className="text-blue-500 font-medium mr-2">{formatTime(match.timestamp)}</span>
+                                  <span className="text-blue-500 font-medium mr-2">
+                                    {formatTime(match.timestamp)}
+                                  </span>
                                 </Button>
-                                <span className="text-gray-700">{match.text}</span>
+                                <span className="text-gray-700">
+                                  {match.text}
+                                </span>
                               </li>
                             ))}
                           </ul>
