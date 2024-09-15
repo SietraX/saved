@@ -23,6 +23,7 @@ export const Playlists = () => {
 
   const { playlists, isLoading, error } = useYoutubePlaylists();
   const { createCollection } = useCollections();
+  const [isCloneMode, setIsCloneMode] = useState(false);
   const [selectedPlaylists, setSelectedPlaylists] = useState<string[]>([]);
   const [isCloning, setIsCloning] = useState(false);
   const { toast } = useToast();
@@ -51,8 +52,14 @@ export const Playlists = () => {
     setIsAdvancedSearchOpen(true);
   };
 
+  const handleCloneModeToggle = () => {
+    setIsCloneMode(!isCloneMode);
+    setSelectedPlaylists([]);
+  };
+
   const handlePlaylistSelect = (playlistId: string, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent the click from bubbling up to the card
+    if (!isCloneMode) return;
+    event.stopPropagation();
     setSelectedPlaylists(prev =>
       prev.includes(playlistId)
         ? prev.filter(id => id !== playlistId)
@@ -91,6 +98,7 @@ export const Playlists = () => {
         description: `${data.clonedCount} collections created`,
       });
       setSelectedPlaylists([]);
+      setIsCloneMode(false);
     } catch (error) {
       console.error("Error cloning playlists:", error);
       toast({
@@ -124,9 +132,15 @@ export const Playlists = () => {
         isOpen={isAdvancedSearchOpen}
         onClose={() => setIsAdvancedSearchOpen(false)}
       />
-      <div className="mb-4">
-        <Button onClick={handleCloneSelected} disabled={isCloning}>
-          {isCloning ? "Cloning..." : `Clone Selected (${selectedPlaylists.length})`}
+      <div className="mb-4 flex gap-2">
+        
+        {isCloneMode && (
+          <Button onClick={handleCloneSelected} disabled={isCloning}>
+            {isCloning ? "Cloning..." : `Clone Selected (${selectedPlaylists.length})`}
+          </Button>
+        )}
+        <Button onClick={handleCloneModeToggle}>
+          {isCloneMode ? "Cancel Clone" : "Clone Playlists"}
         </Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -145,16 +159,18 @@ export const Playlists = () => {
                 className="rounded-t-lg object-cover"
                 priority={playlist.id === filteredPlaylists[0].id}
               />
-              <div 
-                className="absolute top-2 left-2 z-10 cursor-pointer"
-                onClick={(e) => handlePlaylistSelect(playlist.id, e)}
-              >
-                {selectedPlaylists.includes(playlist.id) ? (
-                  <CheckCircle className="w-6 h-6 text-green-500" />
-                ) : (
-                  <div className="w-6 h-6 border-2 border-white rounded-full bg-black bg-opacity-50" />
-                )}
-              </div>
+              {isCloneMode && (
+                <div 
+                  className="absolute top-2 left-2 z-10 cursor-pointer"
+                  onClick={(e) => handlePlaylistSelect(playlist.id, e)}
+                >
+                  {selectedPlaylists.includes(playlist.id) ? (
+                    <CheckCircle className="w-6 h-6 text-green-500" />
+                  ) : (
+                    <div className="w-6 h-6 border-2 border-white rounded-full bg-black bg-opacity-50" />
+                  )}
+                </div>
+              )}
               <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
                 {playlist.contentDetails.itemCount} videos
               </div>
