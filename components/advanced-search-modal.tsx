@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSession } from "next-auth/react";
 
 interface AdvancedSearchModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export const AdvancedSearchModal = ({
   isOpen,
   onClose,
 }: AdvancedSearchModalProps) => {
+  const { data: session, status } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -85,7 +87,7 @@ export const AdvancedSearchModal = ({
   }, [cleanupPlayers]);
 
   const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
+    if (!searchTerm.trim() || status !== "authenticated") return;
 
     setIsSearching(true);
     cleanupPlayers();
@@ -99,9 +101,15 @@ export const AdvancedSearchModal = ({
         body: JSON.stringify({ searchTerm }),
       });
       const data = await response.json();
-      setSearchResults(data.results);
+      if (data.results && Array.isArray(data.results)) {
+        setSearchResults(data.results);
+      } else {
+        console.error("Unexpected response format:", data);
+        setSearchResults([]);
+      }
     } catch (error) {
       console.error("Error performing advanced search:", error);
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
@@ -159,7 +167,7 @@ export const AdvancedSearchModal = ({
         // After a short delay, seek again with allowSeekAhead set to true
         setTimeout(() => {
           player.seekTo(timestamp, true);
-        }, 1000);
+        }, 100);
         setActivePlayer(player);
       } catch (error) {
         console.error("Error interacting with YouTube player:", error);
@@ -201,73 +209,79 @@ export const AdvancedSearchModal = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !isSearching) {
+                if (e.key === "Enter" && !isSearching && status === "authenticated") {
                   handleSearch();
                 }
               }}
               placeholder="Enter search term..."
               className="flex-grow"
-              disabled={isSearching}
+              disabled={isSearching || status !== "authenticated"}
             />
             <Button
               onClick={handleSearch}
-              disabled={isSearching || !searchTerm.trim()}
+              disabled={isSearching || !searchTerm.trim() || status !== "authenticated"}
               className="min-w-[100px]"
             >
               {isSearching ? "Searching..." : "Search"}
             </Button>
           </div>
-          <ScrollArea className="flex-grow">
-            {searchResults.map((result) => {
-              return (
-                <div key={result.videoId} className="mb-8">
-                  <h3 className="font-semibold text-lg mb-4">{result.title}</h3>
-                  <div className="flex flex-col md:flex-row md:space-x-4">
-                    <div className="w-full md:w-1/2 mb-4 md:mb-0">
-                      <div className="relative w-full pt-[56.25%]">
-                        <div
-                          id={`player-${result.videoId}`}
-                          className="absolute top-0 left-0 w-full h-full"
-                        ></div>
+          {status === "loading" && <p>Loading...</p>}
+          {status === "unauthenticated" && <p>Please sign in to use advanced search.</p>}
+          {status === "authenticated" && (
+            <ScrollArea className="flex-grow">
+              {searchResults.length > 0 ? (
+                searchResults.map((result) => (
+                  <div key={result.videoId} className="mb-8">
+                    <h3 className="font-semibold text-lg mb-4">{result.title}</h3>
+                    <div className="flex flex-col md:flex-row md:space-x-4">
+                      <div className="w-full md:w-1/2 mb-4 md:mb-0">
+                        <div className="relative w-full pt-[56.25%]">
+                          <div
+                            id={`player-${result.videoId}`}
+                            className="absolute top-0 left-0 w-full h-full"
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="w-full md:w-1/2">
+                        <h4 className="font-medium mb-2 text-lg">
+                          Transcript Matches:
+                        </h4>
+                        <ScrollArea className="h-[200px] md:h-[calc(56.25vw*0.45)] border rounded-lg">
+                          <div className="p-4">
+                            <ul className="space-y-3">
+                              {result.matches.map((match, matchIndex) => (
+                                <li key={matchIndex} className="text-sm">
+                                  <Button
+                                    variant="link"
+                                    className="p-0 h-auto font-normal hover:underline"
+                                    onClick={() =>
+                                      handleTimestampClick(
+                                        result.videoId,
+                                        match.timestamp
+                                      )
+                                    }
+                                  >
+                                    <span className="text-blue-500 font-medium mr-2">
+                                      {formatTime(match.timestamp)}
+                                    </span>
+                                  </Button>
+                                  <span className="text-gray-700">
+                                    {match.text}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </ScrollArea>
                       </div>
                     </div>
-                    <div className="w-full md:w-1/2">
-                      <h4 className="font-medium mb-2 text-lg">
-                        Transcript Matches:
-                      </h4>
-                      <ScrollArea className="h-[200px] md:h-[calc(56.25vw*0.45)] border rounded-lg">
-                        <div className="p-4">
-                          <ul className="space-y-3">
-                            {result.matches.map((match, matchIndex) => (
-                              <li key={matchIndex} className="text-sm">
-                                <Button
-                                  variant="link"
-                                  className="p-0 h-auto font-normal hover:underline"
-                                  onClick={() =>
-                                    handleTimestampClick(
-                                      result.videoId,
-                                      match.timestamp
-                                    )
-                                  }
-                                >
-                                  <span className="text-blue-500 font-medium mr-2">
-                                    {formatTime(match.timestamp)}
-                                  </span>
-                                </Button>
-                                <span className="text-gray-700">
-                                  {match.text}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </ScrollArea>
-                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </ScrollArea>
+                ))
+              ) : (
+                <p>No results found.</p>
+              )}
+            </ScrollArea>
+          )}
         </div>
       </DialogContent>
     </Dialog>
