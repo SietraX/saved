@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
       const videoDetail = videoDetails?.find(v => v.id === item.contentDetails?.videoId);
       return {
         ...item,
+        id: item.contentDetails?.videoId, // Ensure this is set correctly
         statistics: videoDetail?.statistics,
         contentDetails: {
           ...item.contentDetails,
