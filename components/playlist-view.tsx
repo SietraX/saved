@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { VideoModal } from "@/components/video-modal";
 import { PlaylistViewProps } from "@/types/index";
 import { usePlaylistData } from "@/hooks/usePlaylistData";
@@ -8,7 +8,6 @@ import { useFilteredVideos } from "@/hooks/useFilteredVideos";
 import { PlaylistInfoCard } from "@/components/playlist-info-card";
 import { VideoItem } from "@/components/video-item";
 import { PlaylistControls } from "@/components/playlist-controls";
-import { CaptionFetcherModal } from "@/components/caption-fetcher-modal";
 import { AdvancedSearchContainer } from "@/components/advanced-search-container";
 
 export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
@@ -28,13 +27,19 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   } = useFilteredVideos(videos);
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  useEffect(() => {
+  }, [playlist, videos]);
 
   const handleVideoClick = (videoId: string) => {
     setSelectedVideoId(videoId);
+    setIsVideoModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setSelectedVideoId(null);
+    setIsVideoModalOpen(false);
   };
 
   const handleVideoAdded = () => {
@@ -59,7 +64,6 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
       <div className="md:w-1/3 flex flex-col">
         <div className="sticky top-20">
           <PlaylistInfoCard playlist={playlist} type={type} priority={true} />
-          <CaptionFetcherModal /> {/* Add this line */}
         </div>
       </div>
       <div className="md:w-2/3 flex flex-col">
@@ -82,17 +86,19 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
                 : "space-y-2"
             }`}
           >
-            {filteredVideos.map((video) => (
-              <VideoItem
-                key={video.id}
-                video={video}
-                type={type}
-                filterType={filterType}
-                onClick={() => handleVideoClick(video.id)}
-                onDelete={handleDeleteVideo}
-                collectionId={type === "saved" ? playlistId : undefined}
-              />
-            ))}
+            {filteredVideos.map((video) => {
+              return (
+                <VideoItem
+                  key={video.id}
+                  video={video}
+                  type={type}
+                  filterType={filterType}
+                  onClick={() => handleVideoClick(video.id)}
+                  onDelete={handleDeleteVideo}
+                  collectionId={type === "saved" ? playlistId : undefined}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
@@ -100,6 +106,15 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
         isOpen={isAdvancedSearchOpen}
         onClose={() => setIsAdvancedSearchOpen(false)}
       />
+      {selectedVideoId && (
+        <VideoModal
+          isOpen={isVideoModalOpen}
+          onClose={handleCloseModal}
+          videoId={selectedVideoId}
+          isShort={false} // You might need to determine this based on the selected video
+          startTime={0} // You can adjust this if needed
+        />
+      )}
     </div>
   );
 };

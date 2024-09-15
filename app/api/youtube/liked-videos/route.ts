@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
       auth: oauth2Client
     });
 
-    console.log('Fetching liked videos...');
     const response = await youtube.videos.list({
       part: ["snippet", "statistics", "contentDetails", "status"],
       myRating: "like",

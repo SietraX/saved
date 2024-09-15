@@ -95,12 +95,22 @@ export type PlaylistViewProps = {
   type: "youtube" | "saved" | "liked";
 };
 
+export interface SavedVideoProps {
+  id: string;
+  title: string;
+  thumbnail_url: string;
+  channel_title: string;
+  published_at: string;
+  video_id: string;
+  view_count?: string; // Add this line
+}
+
 export type VideoItemProps = {
-  video: YoutubeVideoProps;
-  type: "youtube" | "saved" | "liked";
+  video: YoutubeVideoProps | SavedVideoProps;
+  type: "youtube" | "liked" | "saved";
   filterType: FilterType;
   onClick: () => void;
-  onDelete?: (videoId: string) => void;
+  onDelete?: (id: string) => void;
   collectionId?: string;
 };
 

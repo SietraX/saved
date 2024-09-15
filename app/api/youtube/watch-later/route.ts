@@ -18,14 +18,12 @@ export async function GET(req: NextRequest) {
       auth: oauth2Client
     });
 
-    console.log('Fetching Watch Later videos...');
     const response = await youtube.playlistItems.list({
       part: ['snippet', 'contentDetails'],
       playlistId: 'WL',  // 'WL' is a special ID for the Watch Later playlist
       maxResults: 50
     });
 
-    console.log('Watch Later response:', JSON.stringify(response.data, null, 2));
 
     return NextResponse.json(response.data);
   } catch (error) {

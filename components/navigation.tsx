@@ -33,7 +33,7 @@ export const Navigation = () => {
             </Link>
             <Link
               href="/playlists"
-              className={pathname.startsWith("/playlists") || pathname.startsWith("/liked-videos") || pathname.startsWith("/watch-later") ? "font-bold" : ""}
+              className={(pathname ?? "").startsWith("/playlists") || (pathname ?? "").startsWith("/liked-videos") || (pathname ?? "").startsWith("/watch-later") ? "font-bold" : ""}
             >
               YT Collections
             </Link>
@@ -63,7 +63,7 @@ export const Navigation = () => {
             </DropdownMenu>
           </>
         ) : (
-          <Button onClick={() => signIn("google", { callbackUrl: "/playlists" })} variant="outline">
+          <Button onClick={() => signIn("google", { callbackUrl: "/" })} variant="outline">
             Sign In
           </Button>
         )}

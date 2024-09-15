@@ -118,6 +118,10 @@ export function useCollections() {
     }
   }, [mutate]);
 
+  const refetchCollections = useCallback(() => {
+    mutate();
+  }, [mutate]);
+
   return {
     collections,
     isLoading: !error && !collections,
@@ -128,6 +132,6 @@ export function useCollections() {
     moveCollectionToTop,
     reorderCollections,
     isMoving,
-    refetchCollections: mutate,
+    refetchCollections,
   };
 }

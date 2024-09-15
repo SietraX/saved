@@ -37,7 +37,7 @@ declare global {
 export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const playerRefs = useRef<{ [key: string]: YT.Player }>({});
 
   useEffect(() => {
@@ -65,7 +65,9 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
   }, []);
 
   const handleSearch = async () => {
-    setIsLoading(true);
+    if (!searchTerm.trim()) return;
+
+    setIsSearching(true);
     try {
       // Stop and destroy all existing players
       Object.values(playerRefs.current).forEach(player => {
@@ -92,7 +94,7 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     } catch (error) {
       console.error("Error performing advanced search:", error);
     } finally {
-      setIsLoading(false);
+      setIsSearching(false);
     }
   };
 
@@ -165,15 +167,20 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !isSearching) {
                   handleSearch();
                 }
               }}
               placeholder="Enter search term..."
               className="flex-grow"
+              disabled={isSearching}
             />
-            <Button onClick={handleSearch} disabled={isLoading} className="min-w-[100px]">
-              {isLoading ? "Searching..." : "Search"}
+            <Button 
+              onClick={handleSearch} 
+              disabled={isSearching || !searchTerm.trim()} 
+              className="min-w-[100px]"
+            >
+              {isSearching ? "Searching..." : "Search"}
             </Button>
           </div>
           <ScrollArea className="flex-grow">

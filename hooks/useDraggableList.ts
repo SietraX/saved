@@ -1,27 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useCallback } from 'react';
-import { DraggableLocation, DropResult } from '@hello-pangea/dnd';
+import { useState, useCallback } from "react";
+import { DraggableLocation, DropResult } from "@hello-pangea/dnd";
 
-export function useDraggableList<T extends { id: string; display_order?: number }>(initialItems: T[]) {
+export function useDraggableList<
+  T extends { id: string; display_order?: number }
+>(initialItems: T[]) {
   const [items, setItems] = useState<T[]>(initialItems);
   const [isEditMode, setIsEditMode] = useState(false);
   const [originalItems, setOriginalItems] = useState<T[]>([]);
 
-  const onDragEnd = useCallback((result: DropResult) => {
-    if (!result.destination) {
-      return;
-    }
+  const onDragEnd = useCallback(
+    (result: DropResult) => {
+      if (!result.destination) {
+        return;
+      }
 
-    const newItems = Array.from(items);
-    const [reorderedItem] = newItems.splice(result.source.index, 1);
-    newItems.splice(result.destination.index, 0, reorderedItem);
+      const newItems = Array.from(items);
+      const [reorderedItem] = newItems.splice(result.source.index, 1);
+      newItems.splice(result.destination.index, 0, reorderedItem);
 
-    // Update order for all items
-    const updatedItems = newItems.map((item, index) => ({ ...item, display_order: index + 1 }));
+      // Update order for all items
+      const updatedItems = newItems.map((item, index) => ({
+        ...item,
+        display_order: index + 1,
+      }));
 
-    setItems(updatedItems);
-  }, [items]);
+      setItems(updatedItems);
+    },
+    [items]
+  );
 
   const enterEditMode = useCallback(() => {
     setOriginalItems([...items]);

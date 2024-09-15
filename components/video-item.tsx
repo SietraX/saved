@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { MoreVertical, CopyPlus, Share2, Trash2 } from "lucide-react";
 import { formatViewCount, formatDuration } from "@/lib/utils";
-import { VideoItemProps } from "@/types/index";
+import { VideoItemProps, YoutubeVideoProps, SavedVideoProps } from "@/types/index";
 import { useToast } from "@/hooks/useToast";
 import {
   DropdownMenu,
@@ -81,6 +81,51 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
     setIsDeleteDialogOpen(false);
   }, [type, collectionId, video.id, onDelete]);
 
+  const getChannelTitle = () => {
+    if ('snippet' in video) {
+      return video.snippet.channelTitle;
+    } else if ('channel_title' in video) {
+      return video.channel_title;
+    }
+    return "Unknown Channel";
+  };
+
+  const getThumbnailUrl = () => {
+    if ('snippet' in video) {
+      return video.snippet.thumbnails?.default?.url || "/placeholder-image.jpg";
+    } else if ('thumbnail_url' in video) {
+      return video.thumbnail_url || "/placeholder-image.jpg";
+    }
+    return "/placeholder-image.jpg";
+  };
+
+  const getTitle = () => {
+    if ('snippet' in video) {
+      return video.snippet.title;
+    } else if ('title' in video) {
+      return video.title;
+    }
+    return "Untitled Video";
+  };
+
+  const getPublishedAt = () => {
+    if ('snippet' in video) {
+      return video.snippet.publishedAt;
+    } else if ('published_at' in video) {
+      return video.published_at;
+    }
+    return new Date().toISOString();
+  };
+
+  const getViewCount = () => {
+    if ('statistics' in video && video.statistics?.viewCount) {
+      return formatViewCount(video.statistics.viewCount);
+    } else if ('view_count' in video && video.view_count) {
+      return formatViewCount(video.view_count);
+    }
+    return null;
+  };
+
   return (
     <>
       <div
@@ -95,11 +140,8 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
           <>
             <div className="relative w-[180px] h-[320px]">
               <Image
-                src={
-                  video.snippet.thumbnails?.default?.url ||
-                  "/placeholder-image.jpg"
-                }
-                alt={video.snippet.title}
+                src={getThumbnailUrl()}
+                alt={getTitle()}
                 fill
                 sizes="180px"
                 style={{ objectFit: "cover" }}
@@ -108,12 +150,10 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
             </div>
             <div className="mt-2">
               <h3 className="text-sm font-medium line-clamp-2">
-                {video.snippet.title}
+                {getTitle()}
               </h3>
               <p className="text-xs text-gray-500 mt-1">
-                {video.statistics?.viewCount
-                  ? `${formatViewCount(video.statistics.viewCount)} views`
-                  : ""}
+                {getViewCount()}
               </p>
             </div>
           </>
@@ -121,36 +161,30 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
           <>
             <div className="relative w-40 h-[90px]">
               <Image
-                src={
-                  video.snippet.thumbnails?.default?.url ||
-                  "/placeholder-image.jpg"
-                }
-                alt={video.snippet.title}
+                src={getThumbnailUrl()}
+                alt={getTitle()}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 style={{ objectFit: "cover" }}
                 className="rounded-lg"
               />
-              {video.creatorContentType === "SHORTS" && (
+              {'creatorContentType' in video && video.creatorContentType === "SHORTS" && (
                 <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
                   Short
                 </div>
               )}
-              {video.contentDetails?.duration && (
+              {'contentDetails' in video && video.contentDetails?.duration && (
                 <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 py-0.5 rounded">
                   {formatDuration(video.contentDetails.duration)}
                 </div>
               )}
             </div>
             <div className="flex-1">
-              <h3 className="font-medium">{video.snippet.title}</h3>
+              <h3 className="font-medium">{getTitle()}</h3>
               <p className="text-xs text-gray-800">
-                {video.snippet.channelTitle}
-                {video.statistics?.viewCount &&
-                  ` • ${formatViewCount(video.statistics.viewCount)} views`}
-                {` • ${new Date(
-                  video.snippet.publishedAt
-                ).toLocaleDateString()}`}
+                {getChannelTitle()}
+                {getViewCount() && ` • ${getViewCount()} views`}
+                {` • ${new Date(getPublishedAt()).toLocaleDateString()}`}
               </p>
             </div>
             <DropdownMenu>
