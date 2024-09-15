@@ -30,8 +30,6 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   useEffect(() => {
-    console.log('Playlist:', playlist);
-    console.log('Videos:', videos);
   }, [playlist, videos]);
 
   const handleVideoClick = (videoId: string) => {
@@ -89,7 +87,6 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
             }`}
           >
             {filteredVideos.map((video) => {
-              console.log('Rendering video:', video);
               return (
                 <VideoItem
                   key={video.id}

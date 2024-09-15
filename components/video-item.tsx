@@ -82,16 +82,11 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
   }, [type, collectionId, video.id, onDelete]);
 
   const getChannelTitle = () => {
-    console.log('Video object:', video);
-    console.log('Video type:', type);
     if ('snippet' in video) {
-      console.log('Channel title from snippet:', video.snippet.channelTitle);
       return video.snippet.channelTitle;
     } else if ('channel_title' in video) {
-      console.log('Channel title from channel_title:', video.channel_title);
       return video.channel_title;
     }
-    console.log('Unknown channel');
     return "Unknown Channel";
   };
 
