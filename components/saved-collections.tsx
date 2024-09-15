@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDraggableList } from "@/hooks/useDraggableList";
 import { useCollections } from "@/hooks/useCollections";
 import { useDeleteConfirmation } from "@/hooks/useDeleteConfirmation";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
-import { useNewCollectionInput } from '@/hooks/useNewCollectionInput';
 import { CollectionList } from "@/components/collection-list";
 import { AdvancedSearchButton } from "@/components/advanced-search-button";
 import { AdvancedSearchContainer } from "@/components/advanced-search-container";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function SavedCollections() {
   const router = useRouter();
@@ -27,6 +27,9 @@ export default function SavedCollections() {
     isMoving,
   } = useCollections();
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState("");
+
   const {
     items: sortedCollections,
     isEditMode,
@@ -36,15 +39,6 @@ export default function SavedCollections() {
     cancelEditMode,
     updateItems,
   } = useDraggableList(collections ?? []);
-
-  const {
-    newCollectionName,
-    updateNewCollectionName,
-    handleCreateCollection,
-    handleKeyDown,
-  } = useNewCollectionInput(async (name) => {
-    await createCollection(name);
-  });
 
   const {
     deleteId: deleteConfirmationId,
@@ -66,6 +60,14 @@ export default function SavedCollections() {
   if (isLoading) {
     return <div>Loading...</div>;
   }
+
+  const handleCreateCollection = async () => {
+    if (newCollectionName.trim()) {
+      await createCollection(newCollectionName.trim());
+      setNewCollectionName("");
+      setIsCreateModalOpen(false);
+    }
+  };
 
   const handleEdit = async (id: string, newName: string) => {
     await updateCollection(id, newName);
@@ -115,16 +117,8 @@ export default function SavedCollections() {
         )}
       </div>
       <div className="flex space-x-2 mb-4">
-        <Input
-          type="text"
-          placeholder="New collection name"
-          value={newCollectionName}
-          onChange={(e) => updateNewCollectionName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="flex-grow"
-        />
-        <Button onClick={handleCreateCollection}>
-          <Plus className="mr-2 h-4 w-4" /> Create
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Create New Collection
         </Button>
         <AdvancedSearchButton onClick={handleAdvancedSearchClick} />
       </div>
@@ -151,6 +145,27 @@ export default function SavedCollections() {
         isOpen={isAdvancedSearchOpen}
         onClose={() => setIsAdvancedSearchOpen(false)}
       />
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Collection</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center space-x-2">
+            <Input
+              type="text"
+              placeholder="Collection name"
+              value={newCollectionName}
+              onChange={(e) => setNewCollectionName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleCreateCollection();
+                }
+              }}
+            />
+            <Button onClick={handleCreateCollection}>Create</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
