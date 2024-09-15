@@ -28,12 +28,32 @@ export function usePlaylistData(
       const data = await response?.json();
 
       // Normalize the video data to include duration for all types
-      const normalizedVideos = data.items.map((video: any) => ({
-        ...video,
-        contentDetails: {
-          ...video.contentDetails,
-          duration: video.contentDetails?.duration || video.duration || null,
-        },
+      const normalizedVideos = await Promise.all(data.items.map(async (video: any) => {
+        let normalizedVideo = {
+          ...video,
+          contentDetails: {
+            ...video.contentDetails,
+            duration: video.contentDetails?.duration || video.duration || null,
+          },
+        };
+
+        // If it's a YouTube playlist, fetch the actual video details
+        if (type === "youtube") {
+          const videoDetailsResponse = await fetch(`/api/youtube/video-details?id=${video.contentDetails.videoId}`);
+          if (videoDetailsResponse.ok) {
+            const videoDetails = await videoDetailsResponse.json();
+            normalizedVideo = {
+              ...normalizedVideo,
+              snippet: {
+                ...normalizedVideo.snippet,
+                channelTitle: videoDetails.snippet.channelTitle,
+              },
+              statistics: videoDetails.statistics,
+            };
+          }
+        }
+
+        return normalizedVideo;
       }));
 
       setVideos(normalizedVideos);

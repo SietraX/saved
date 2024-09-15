@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { VideoModal } from "@/components/video-modal";
 import { PlaylistViewProps } from "@/types/index";
 import { usePlaylistData } from "@/hooks/usePlaylistData";
@@ -28,6 +28,11 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  useEffect(() => {
+    console.log('Playlist:', playlist);
+    console.log('Videos:', videos);
+  }, [playlist, videos]);
 
   const handleVideoClick = (videoId: string) => {
     setSelectedVideoId(videoId);
@@ -83,17 +88,20 @@ export const PlaylistView = ({ playlistId, type }: PlaylistViewProps) => {
                 : "space-y-2"
             }`}
           >
-            {filteredVideos.map((video) => (
-              <VideoItem
-                key={video.id}
-                video={video}
-                type={type}
-                filterType={filterType}
-                onClick={() => handleVideoClick(video.id)}
-                onDelete={handleDeleteVideo}
-                collectionId={type === "saved" ? playlistId : undefined}
-              />
-            ))}
+            {filteredVideos.map((video) => {
+              console.log('Rendering video:', video);
+              return (
+                <VideoItem
+                  key={video.id}
+                  video={video}
+                  type={type}
+                  filterType={filterType}
+                  onClick={() => handleVideoClick(video.id)}
+                  onDelete={handleDeleteVideo}
+                  collectionId={type === "saved" ? playlistId : undefined}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
