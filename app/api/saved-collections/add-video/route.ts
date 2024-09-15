@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { createClient } from "@supabase/supabase-js";
 import { google } from "googleapis";
+import { fetchAndStoreTranscript } from "@/utils/transcriptHandler";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -83,8 +84,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch and store transcript in the background
-    fetchAndStoreTranscript(videoId);
+    // After successfully inserting the video
+    await fetchAndStoreTranscript(videoId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -93,25 +94,5 @@ export async function POST(req: NextRequest) {
       { error: "An unexpected error occurred" },
       { status: 500 }
     );
-  }
-}
-
-async function fetchAndStoreTranscript(videoId: string) {
-  try {
-    const response = await fetch(
-      `http://localhost:8000/api/transcript/${videoId}`
-    );
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error(
-        `Failed to fetch transcript: ${errorData.detail || response.statusText}`
-      );
-    } else {
-      console.log(
-        `Successfully fetched and stored transcript for video ${videoId}`
-      );
-    }
-  } catch (error) {
-    console.error("Error fetching and storing transcript:", error);
   }
 }

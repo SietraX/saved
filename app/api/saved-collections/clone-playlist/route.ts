@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { createClient } from "@supabase/supabase-js";
 import { google, youtube_v3 } from "googleapis";
 import { GaxiosResponse } from "gaxios";
+import { fetchAndStoreTranscript } from "@/utils/transcriptHandler";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -90,7 +91,6 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-
         let pageToken: string | undefined = undefined;
         do {
           const response: GaxiosResponse<youtube_v3.Schema$PlaylistItemListResponse> = await youtube.playlistItems.list({
@@ -132,6 +132,10 @@ export async function POST(req: NextRequest) {
             if (insertError) {
               console.error("Error inserting videos:", insertError);
             } else {
+              // Fetch and store transcripts for each video
+              for (const video of videosToInsert) {
+                await fetchAndStoreTranscript(video.video_id);
+              }
             }
           } else {
           }
