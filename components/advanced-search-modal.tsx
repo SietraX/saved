@@ -191,6 +191,13 @@ export const AdvancedSearchModal = ({
     }
   };
 
+  const highlightMatch = (text: string, searchTerm: string) => {
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.split(regex).map((part, index) => 
+      regex.test(part) ? <mark key={index} className="bg-yellow-200">{part}</mark> : part
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[900px] h-[90vh] flex flex-col overflow-hidden">
@@ -266,7 +273,7 @@ export const AdvancedSearchModal = ({
                                     </span>
                                   </Button>
                                   <span className="text-gray-700">
-                                    {match.text}
+                                    {highlightMatch(match.text, searchTerm)}
                                   </span>
                                 </li>
                               ))}
