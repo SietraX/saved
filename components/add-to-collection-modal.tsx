@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { useCollections } from "@/hooks/useCollections";
 import { useToast } from "@/hooks/useToast";
+import { Input } from "@/components/ui/input";
+import { useNewCollectionInput } from "@/hooks/useNewCollectionInput";
 
 interface AddToCollectionModalProps {
   isOpen: boolean;
@@ -20,9 +24,24 @@ export function AddToCollectionModal({
   onClose,
   videoId,
 }: AddToCollectionModalProps) {
-  const { collections, isLoading } = useCollections();
+  const { collections, isLoading, createCollection, refetchCollections } = useCollections();
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
+
+  const {
+    newCollectionName,
+    updateNewCollectionName,
+    handleCreateCollection: createNewCollection,
+    handleKeyDown,
+  } = useNewCollectionInput(async (name) => {
+    const newCollection = await createCollection(name);
+    if (newCollection) {
+      handleAddToCollection(newCollection.id);
+      setIsCreatingNew(false);
+      refetchCollections();
+    }
+  });
 
   const handleAddToCollection = useCallback(async (collectionId: string) => {
     setIsAdding(true);
@@ -77,6 +96,29 @@ export function AddToCollectionModal({
                 {collection.name}
               </Button>
             ))}
+            {isCreatingNew ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="New collection name"
+                  value={newCollectionName}
+                  onChange={(e) => updateNewCollectionName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="flex-grow"
+                />
+                <Button onClick={createNewCollection} disabled={isAdding}>
+                  Create
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={() => setIsCreatingNew(true)}
+                variant="outline"
+                className="w-full"
+              >
+                Create New Collection
+              </Button>
+            )}
           </div>
         ) : (
           <div>No collections found.</div>
