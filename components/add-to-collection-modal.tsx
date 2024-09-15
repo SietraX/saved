@@ -28,6 +28,7 @@ export function AddToCollectionModal({
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [collectionsWithVideo, setCollectionsWithVideo] = useState<string[]>([]);
 
   const {
     newCollectionName,
@@ -42,6 +43,24 @@ export function AddToCollectionModal({
       refetchCollections();
     }
   });
+
+  useEffect(() => {
+    const fetchCollectionsWithVideo = async () => {
+      try {
+        const response = await fetch(`/api/saved-collections/check-video?videoId=${videoId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCollectionsWithVideo(data.collectionsWithVideo);
+        }
+      } catch (error) {
+        console.error("Error fetching collections with video:", error);
+      }
+    };
+
+    if (isOpen && videoId) {
+      fetchCollectionsWithVideo();
+    }
+  }, [isOpen, videoId]);
 
   const handleAddToCollection = useCallback(async (collectionId: string) => {
     setIsAdding(true);
@@ -58,6 +77,7 @@ export function AddToCollectionModal({
           description: "Video added to collection",
           duration: 3000,
         });
+        setCollectionsWithVideo(prev => [...prev, collectionId]);
         onClose();
       } else {
         const data = await response.json();
@@ -90,10 +110,11 @@ export function AddToCollectionModal({
               <Button
                 key={collection.id}
                 onClick={() => handleAddToCollection(collection.id)}
-                disabled={isAdding}
-                className="w-full justify-start"
+                disabled={isAdding || collectionsWithVideo.includes(collection.id)}
+                className={`w-full justify-start ${collectionsWithVideo.includes(collection.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {collection.name}
+                {collectionsWithVideo.includes(collection.id) && " (Already added)"}
               </Button>
             ))}
             {isCreatingNew ? (
