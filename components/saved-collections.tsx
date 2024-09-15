@@ -37,6 +37,7 @@ export default function SavedCollections() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditOrderModalOpen, setIsEditOrderModalOpen] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const {
     items: sortedCollections,
@@ -67,9 +68,17 @@ export default function SavedCollections() {
 
   const handleCreateCollection = async () => {
     if (newCollectionName.trim()) {
-      await createCollection(newCollectionName.trim());
-      setNewCollectionName("");
-      setIsCreateModalOpen(false);
+      setIsCreating(true);
+      try {
+        await createCollection(newCollectionName.trim());
+        setNewCollectionName("");
+        setIsCreateModalOpen(false);
+      } catch (error) {
+        console.error("Error creating collection:", error);
+        // Optionally, show an error message to the user
+      } finally {
+        setIsCreating(false);
+      }
     }
   };
 
@@ -105,9 +114,11 @@ export default function SavedCollections() {
     <div className="space-y-6 pt-4">
       <div className="flex justify-between items-center mb-4 mt-16">
         <h1 className="text-2xl font-bold">Your Saved Collections</h1>
+        {/* 
         <Button onClick={() => setIsEditOrderModalOpen(true)} variant="outline">
           Edit Order
         </Button>
+        */}
       </div>
       <div className="flex space-x-2 mb-4">
         <Button onClick={() => setIsCreateModalOpen(true)}>
@@ -152,12 +163,15 @@ export default function SavedCollections() {
               value={newCollectionName}
               onChange={(e) => setNewCollectionName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" && !isCreating) {
                   handleCreateCollection();
                 }
               }}
+              disabled={isCreating}
             />
-            <Button onClick={handleCreateCollection}>Create</Button>
+            <Button onClick={handleCreateCollection} disabled={isCreating}>
+              {isCreating ? "Creating..." : "Create"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
