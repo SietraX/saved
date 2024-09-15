@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -39,49 +39,55 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const playerRefs = useRef<{ [key: string]: YT.Player }>({});
+  const [activePlayer, setActivePlayer] = useState<YT.Player | null>(null);
+  const [isYouTubeApiReady, setIsYouTubeApiReady] = useState(false);
+
+  const cleanupPlayers = useCallback(() => {
+    Object.values(playerRefs.current).forEach(player => {
+      if (player && player.destroy) {
+        try {
+          player.destroy();
+        } catch (error) {
+          console.error("Error destroying player:", error);
+        }
+      }
+    });
+    playerRefs.current = {};
+    setActivePlayer(null);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm("");
       setSearchResults([]);
-      Object.values(playerRefs.current).forEach(player => player.destroy());
-      playerRefs.current = {};
+      cleanupPlayers();
     }
-  }, [isOpen]);
+  }, [isOpen, cleanupPlayers]);
 
   useEffect(() => {
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
 
-    window.onYouTubeIframeAPIReady = () => {
-      // YouTube API is ready
-    };
+      window.onYouTubeIframeAPIReady = () => {
+        setIsYouTubeApiReady(true);
+      };
+    } else {
+      setIsYouTubeApiReady(true);
+    }
 
-    return () => {
-      Object.values(playerRefs.current).forEach(player => player.destroy());
-    };
-  }, []);
+    return cleanupPlayers;
+  }, [cleanupPlayers]);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) return;
 
     setIsSearching(true);
+    cleanupPlayers();
+
     try {
-      // Stop and destroy all existing players
-      Object.values(playerRefs.current).forEach(player => {
-        if (player.stopVideo) {
-          player.stopVideo();
-        }
-        if (player.destroy) {
-          player.destroy();
-        }
-      });
-
-      // Clear existing player references
-      playerRefs.current = {};
-
       const response = await fetch("/api/advanced-search", {
         method: "POST",
         headers: {
@@ -98,43 +104,50 @@ export const AdvancedSearchModal = ({ isOpen, onClose }: AdvancedSearchModalProp
     }
   };
 
-  const initializePlayer = (videoId: string, containerId: string) => {
-    if (window.YT && !playerRefs.current[videoId]) {
-      playerRefs.current[videoId] = new window.YT.Player(containerId, {
-        videoId: videoId,
-        playerVars: {
-          autoplay: 0,
-          modestbranding: 1,
-          rel: 0,
-        },
-        events: {
-          'onReady': (event: YT.PlayerEvent) => {
-            // Ensure the video is stopped when it's ready
-            event.target.stopVideo();
-          },
-        },
-      });
-    }
-  };
-
-  useEffect(() => {
-    // Reinitialize players after search results update
-    searchResults.forEach((result) => {
-      const containerId = `player-${result.videoId}`;
+  const initializePlayer = useCallback((videoId: string, containerId: string) => {
+    if (isYouTubeApiReady && !playerRefs.current[videoId]) {
       const container = document.getElementById(containerId);
       if (container) {
-        // Clear the container before initializing new player
         container.innerHTML = '';
-        initializePlayer(result.videoId, containerId);
+        playerRefs.current[videoId] = new window.YT.Player(containerId, {
+          videoId: videoId,
+          playerVars: {
+            autoplay: 0,
+            modestbranding: 1,
+            rel: 0,
+          },
+          events: {
+            'onReady': (event: YT.PlayerEvent) => {
+              event.target.stopVideo();
+            },
+          },
+        });
       }
-    });
-  }, [searchResults]);
+    }
+  }, [isYouTubeApiReady]);
+
+  useEffect(() => {
+    if (isYouTubeApiReady) {
+      searchResults.forEach((result) => {
+        const containerId = `player-${result.videoId}`;
+        initializePlayer(result.videoId, containerId);
+      });
+    }
+  }, [searchResults, isYouTubeApiReady, initializePlayer]);
 
   const handleTimestampClick = (videoId: string, timestamp: number) => {
     const player = playerRefs.current[videoId];
-    if (player && player.seekTo) {
-      player.seekTo(timestamp, true);
-      player.playVideo();
+    if (player && player.seekTo && player.playVideo) {
+      try {
+        if (activePlayer && activePlayer !== player && activePlayer.pauseVideo) {
+          activePlayer.pauseVideo();
+        }
+        player.seekTo(timestamp, true);
+        player.playVideo();
+        setActivePlayer(player);
+      } catch (error) {
+        console.error("Error interacting with YouTube player:", error);
+      }
     }
   };
 
