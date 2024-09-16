@@ -38,12 +38,14 @@ export interface PlaylistDetailsProps {
     title: string;
     description?: string;
     thumbnails?: {
-      medium?: {
-        url?: string;
-      };
+      default?: { url: string; width: number; height: number };
+      medium?: { url: string; width: number; height: number };
+      high?: { url: string; width: number; height: number };
+      standard?: { url: string; width: number; height: number };
+      maxres?: { url: string; width: number; height: number };
     };
     channelTitle?: string;
-    publishedAt?: string; // Add this line
+    publishedAt?: string;
   };
   contentDetails?: {
     itemCount: number;
