@@ -12,6 +12,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSession } from "next-auth/react";
+import { useCollections } from "@/hooks/useCollections";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AdvancedSearchModalProps {
   isOpen: boolean;
@@ -46,6 +55,16 @@ export const AdvancedSearchModal = ({
   const playerRefs = useRef<{ [key: string]: YT.Player }>({});
   const [activePlayer, setActivePlayer] = useState<YT.Player | null>(null);
   const [isYouTubeApiReady, setIsYouTubeApiReady] = useState(false);
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
+  const { collections } = useCollections();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Initialize selectedCollections with all collection IDs
+  useEffect(() => {
+    if (collections) {
+      setSelectedCollections(collections.map(c => c.id));
+    }
+  }, [collections]);
 
   const cleanupPlayers = useCallback(() => {
     Object.values(playerRefs.current).forEach((player) => {
@@ -86,6 +105,20 @@ export const AdvancedSearchModal = ({
     return cleanupPlayers;
   }, [cleanupPlayers]);
 
+  const handleCollectionToggle = (collectionId: string, checked: boolean) => {
+    setSelectedCollections(prev =>
+      checked
+        ? [...prev, collectionId]
+        : prev.filter(id => id !== collectionId)
+    );
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (collections) {
+      setSelectedCollections(checked ? collections.map(c => c.id) : []);
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchTerm.trim() || status !== "authenticated") return;
 
@@ -98,7 +131,7 @@ export const AdvancedSearchModal = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ searchTerm }),
+        body: JSON.stringify({ searchTerm, selectedCollections }),
       });
       const data = await response.json();
       if (data.results && Array.isArray(data.results)) {
@@ -223,14 +256,47 @@ export const AdvancedSearchModal = ({
               placeholder="Enter search term..."
               className="flex-grow"
               disabled={isSearching || status !== "authenticated"}
-            />
-            <Button
-              onClick={handleSearch}
-              disabled={isSearching || !searchTerm.trim() || status !== "authenticated"}
-              className="min-w-[100px]"
-            >
-              {isSearching ? "Searching..." : "Search"}
-            </Button>
+            /><Button
+            onClick={handleSearch}
+            disabled={isSearching || !searchTerm.trim() || status !== "authenticated"}
+            className="min-w-[100px]"
+          >
+            {isSearching ? "Searching..." : "Search"}
+          </Button>
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild onClick={() => setDropdownOpen(true)}>
+                <Button variant="outline" className="w-[200px] justify-start">
+                  Collections: {selectedCollections.length} selected
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                className="w-56" 
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                onInteractOutside={() => setDropdownOpen(false)}
+              >
+                <DropdownMenuLabel>Filter by collection</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  checked={collections && selectedCollections.length === collections.length}
+                  onCheckedChange={(checked) => handleSelectAll(checked)}
+                  onSelect={(event) => event.preventDefault()}
+                >
+                  Select All
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                {collections?.map(collection => (
+                  <DropdownMenuCheckboxItem
+                    key={collection.id}
+                    checked={selectedCollections.includes(collection.id)}
+                    onCheckedChange={(checked) => handleCollectionToggle(collection.id, checked)}
+                    onSelect={(event) => event.preventDefault()}
+                  >
+                    {collection.name}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
           </div>
           {status === "loading" && <p>Loading...</p>}
           {status === "unauthenticated" && <p>Please sign in to use advanced search.</p>}

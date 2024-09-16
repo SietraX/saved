@@ -20,13 +20,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { searchTerm } = await req.json();
+    const { searchTerm, selectedCollections } = await req.json();
 
-    // First, get the video_ids from the user's saved collections
+    // Fetch video_ids from the user's selected collections
     const { data: userVideos, error: userVideosError } = await supabase
       .from("saved_collection_videos")
       .select("video_id")
-      .eq("user_id", token.sub);
+      .eq("user_id", token.sub)
+      .in("collection_id", selectedCollections);
 
     if (userVideosError) {
       console.error("Error fetching user videos:", userVideosError);
