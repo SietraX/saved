@@ -4,12 +4,14 @@ interface Collection {
   id: string;
   name: string;
   created_at: string;
+  updated_at: string; // Add this
   videoCount: number;
+  thumbnailUrl: string; // Add this
 }
 
 interface CollectionListProps {
   collections: Collection[];
-  onEdit: (id: string, name: string) => void;
+  onEdit: (id: string, name: string) => Promise<any>;
   onDelete: (id: string) => void;
   onMoveToTop: (id: string) => void;
   onViewCollection: (id: string) => void;
