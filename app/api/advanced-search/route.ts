@@ -85,7 +85,10 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ results: processedResults });
+    // Only return results for videos that have matches
+    const filteredResults = processedResults.filter(result => result.matches.length > 0);
+
+    return NextResponse.json({ results: filteredResults });
   } catch (error) {
     console.error("Unexpected error:", error);
     return NextResponse.json(
