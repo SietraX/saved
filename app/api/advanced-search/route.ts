@@ -39,6 +39,9 @@ export async function POST(req: NextRequest) {
 
     const userVideoIds = userVideos.map((v) => v.video_id);
 
+    // Prepare search terms for Supabase text search
+    const searchTerms = searchTerm.split(' ').map((term: string) => `'${term}'`).join(' & ');
+
     // Now, search within these videos
     const { data, error } = await supabase
       .from("video_transcripts")
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
         videos!video_transcripts_video_uuid_fkey(thumbnail_url)
       `
       )
-      .textSearch("transcript_search", `'${searchTerm}'`, {
+      .textSearch("transcript_search", searchTerms, {
         type: "plain",
         config: "english",
       })
@@ -65,10 +68,12 @@ export async function POST(req: NextRequest) {
     }
 
     const processedResults = (data as any[]).map((item) => {
-      const matchedSegments = item.transcript.filter(
-        (segment: TranscriptSegment) =>
-          segment.text.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const searchWords = searchTerm.toLowerCase().split(' ');
+      const matchedSegments = item.transcript.filter((segment: TranscriptSegment) => {
+        const lowercaseText = segment.text.toLowerCase();
+        return searchWords.every((word:string) => lowercaseText.includes(word));
+      });
+
       return {
         videoId: item.video_id,
         title: item.title,
@@ -80,7 +85,10 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ results: processedResults });
+    // Only return results for videos that have matches
+    const filteredResults = processedResults.filter(result => result.matches.length > 0);
+
+    return NextResponse.json({ results: filteredResults });
   } catch (error) {
     console.error("Unexpected error:", error);
     return NextResponse.json(

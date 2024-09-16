@@ -17,16 +17,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from "next/image";
+import { useTimeAgo } from "@/hooks/useTimeAgo";
 
 interface CollectionCardProps {
   collection: {
     id: string;
     name: string;
-    created_at: string;
+    updated_at: string;
     videoCount: number;
+    thumbnailUrl: string;
   };
   isEditMode: boolean;
-  onEdit: (id: string, name: string) => void;
+  onEdit: (id: string, name: string) => Promise<any>; // Change this to Promise<any>
   onDelete: (id: string) => void;
   onMoveToTop: (id: string) => void;
   onClick: () => void;
@@ -44,6 +47,9 @@ export function CollectionCard({
   const [editName, setEditName] = useState(collection.name);
   const inputRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const [localUpdatedAt, setLocalUpdatedAt] = useState(collection.updated_at);
+  const timeAgo = useTimeAgo(localUpdatedAt);
 
   useEffect(() => {
     if (isEditing) {
@@ -67,9 +73,12 @@ export function CollectionCard({
     };
   }, [isEditing]);
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editName.trim() && editName !== collection.name) {
-      onEdit(collection.id, editName.trim());
+      const updatedCollection = await onEdit(collection.id, editName.trim());
+      if (updatedCollection && updatedCollection.updated_at) {
+        setLocalUpdatedAt(updatedCollection.updated_at);
+      }
     }
     setIsEditing(false);
   };
@@ -97,6 +106,20 @@ export function CollectionCard({
         if (!isEditMode && !isEditing) onClick();
       }}
     >
+      <div className="relative aspect-video">
+        <Image
+          src={collection.thumbnailUrl}
+          alt={collection.name}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover rounded-t-lg"
+          quality={95}
+          priority={true}
+        />
+        <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+          {collection.videoCount} video{collection.videoCount !== 1 ? "s" : ""}
+        </div>
+      </div>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         {isEditing ? (
           <div className="flex items-center space-x-2 flex-grow" onClick={(e) => e.stopPropagation()}>
@@ -162,15 +185,9 @@ export function CollectionCard({
       </CardHeader>
       <CardContent className="flex-grow">
         <p className="text-sm text-gray-500">
-          Created on: {new Date(collection.created_at).toLocaleDateString()}
+          Last updated: {parseInt(timeAgo)<3 ? 'Just now' : timeAgo }
         </p>
-      </CardContent>
-      <CardFooter>
-        <p>
-          {collection.videoCount} video
-          {collection.videoCount !== 1 ? "s" : ""}
-        </p>
-      </CardFooter>
+      </CardContent>      
     </Card>
   );
 }

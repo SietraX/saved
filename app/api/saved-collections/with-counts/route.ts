@@ -15,36 +15,55 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { data: collections, error: collectionsError } = await supabase
+    const { data: collections, error } = await supabase
       .from("saved_collections")
-      .select("*")
+      .select(`
+        *,
+        saved_collection_videos (
+          thumbnail_url
+        )
+      `)
       .eq("user_id", token.sub)
       .order("display_order", { ascending: true });
 
-    if (collectionsError) {
-      console.error("Supabase error:", collectionsError);
-      return NextResponse.json({ error: collectionsError.message }, { status: 500 });
+    if (error) {
+      console.error("Supabase error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const { data: videoCounts, error: countsError } = await supabase
-      .from("saved_collection_videos")
-      .select("collection_id")
-      .eq("user_id", token.sub);
+    const collectionsWithCounts = await Promise.all(
+      collections.map(async (collection) => {
+        const { count, data: videos } = await supabase
+          .from("saved_collection_videos")
+          .select("*", { count: "exact" })
+          .eq("collection_id", collection.id)
+          .order("created_at", { ascending: false })
+          .limit(1);
 
-    if (countsError) {
-      console.error("Supabase error:", countsError);
-      return NextResponse.json({ error: "Failed to fetch video counts" }, { status: 500 });
-    }
+        const video = videos && videos[0];
+        let thumbnailUrl = "/default-playlist-image.png";
 
-    const counts = videoCounts.reduce((acc, item) => {
-      acc[item.collection_id] = (acc[item.collection_id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+        if (video && video.thumbnail_url) {
+          thumbnailUrl = video.thumbnail_url.replace('/default.', '/maxresdefault.');
+        }
 
-    const collectionsWithCounts = collections.map(collection => ({
-      ...collection,
-      videoCount: counts[collection.id] || 0
-    }));
+        // Get the last updated date
+        const { data: lastUpdated } = await supabase
+          .from("saved_collection_videos")
+          .select("created_at")
+          .eq("collection_id", collection.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        return {
+          ...collection,
+          videoCount: count || 0,
+          thumbnailUrl,
+          last_updated: collection.updated_at || collection.created_at
+        };
+      })
+    );
 
     return NextResponse.json(collectionsWithCounts);
   } catch (error) {
