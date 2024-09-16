@@ -4,7 +4,7 @@ import React from 'react';
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, CopyPlus, Share2, Trash2 } from "lucide-react";
+import { MoreVertical, CopyPlus, Link, Trash2 } from "lucide-react"; // Change Share2 to Link
 import { formatViewCount, formatDuration } from "@/lib/utils";
 import { VideoItemProps, YoutubeVideoProps, SavedVideoProps } from "@/types/index";
 import { useToast } from "@/hooks/useToast";
@@ -36,13 +36,13 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
     setIsAddToCollectionModalOpen(true);
   }, []);
 
-  const handleShare = useCallback(() => {
+  const handleCopyVideoUrl = useCallback(() => {
     const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;
     navigator.clipboard
       .writeText(videoUrl)
       .then(() => {
         toast({
-          title: "Link copied!",
+          title: "Video URL copied!",
           description: "The video URL has been copied to your clipboard.",
           duration: 3000,
         });
@@ -51,7 +51,7 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
         console.error("Failed to copy: ", error);
         toast({
           title: "Copy failed",
-          description: "Unable to copy the link. Please try again.",
+          description: "Unable to copy the video URL. Please try again.",
           variant: "destructive",
           duration: 3000,
         });
@@ -215,11 +215,11 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleShare();
+                    handleCopyVideoUrl();
                   }}
                 >
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
+                  <Link className="mr-2 h-4 w-4" />
+                  Copy video URL
                 </DropdownMenuItem>
                 {type === "saved" && (
                   <DropdownMenuItem
