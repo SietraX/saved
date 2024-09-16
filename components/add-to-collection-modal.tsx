@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useCollections } from "@/hooks/useCollections";
 import { useToast } from "@/hooks/useToast";
@@ -24,11 +25,28 @@ export function AddToCollectionModal({
   onClose,
   videoId,
 }: AddToCollectionModalProps) {
-  const { collections, isLoading, createCollection, refetchCollections } = useCollections();
+  const { collections, createCollection, refetchCollections } = useCollections();
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [collectionsWithVideo, setCollectionsWithVideo] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (isOpen && videoId) {
+      setIsLoading(true);
+      fetch(`/api/saved-collections/check-video?videoId=${videoId}`)
+        .then(response => response.json())
+        .then(data => {
+          setCollectionsWithVideo(data.collectionsWithVideo);
+          setIsLoading(false);
+        })
+        .catch(error => {
+          console.error("Error checking video in collections:", error);
+          setIsLoading(false);
+        });
+    }
+  }, [isOpen, videoId]);
 
   const {
     newCollectionName,
@@ -43,24 +61,6 @@ export function AddToCollectionModal({
       refetchCollections();
     }
   });
-
-  useEffect(() => {
-    const fetchCollectionsWithVideo = async () => {
-      try {
-        const response = await fetch(`/api/saved-collections/check-video?videoId=${videoId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setCollectionsWithVideo(data.collectionsWithVideo);
-        }
-      } catch (error) {
-        console.error("Error fetching collections with video:", error);
-      }
-    };
-
-    if (isOpen && videoId) {
-      fetchCollectionsWithVideo();
-    }
-  }, [isOpen, videoId]);
 
   const handleAddToCollection = useCallback(async (collectionId: string) => {
     setIsAdding(true);
@@ -98,13 +98,16 @@ export function AddToCollectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Add to Collection</DialogTitle>
+          <DialogDescription>
+            Choose a collection to add this video to, or create a new one.
+          </DialogDescription>
         </DialogHeader>
         {isLoading ? (
           <div>Loading collections...</div>
-        ) : collections ? (
+        ) : collections && collections.length > 0 ? (
           <div className="grid gap-4 py-4">
             {collections.map((collection) => (
               <Button
