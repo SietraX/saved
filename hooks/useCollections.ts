@@ -10,6 +10,7 @@ interface SavedCollection {
   created_at: string;
   videoCount: number;
   display_order?: number;
+  thumbnailUrl: string;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());

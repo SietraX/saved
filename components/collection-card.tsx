@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
 interface CollectionCardProps {
   collection: {
@@ -24,6 +25,7 @@ interface CollectionCardProps {
     name: string;
     created_at: string;
     videoCount: number;
+    thumbnailUrl: string;
   };
   isEditMode: boolean;
   onEdit: (id: string, name: string) => void;
@@ -97,6 +99,20 @@ export function CollectionCard({
         if (!isEditMode && !isEditing) onClick();
       }}
     >
+      <div className="relative aspect-video">
+        <Image
+          src={collection.thumbnailUrl}
+          alt={collection.name}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover rounded-t-lg"
+          quality={95}
+          priority={true}
+        />
+        <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+          {collection.videoCount} video{collection.videoCount !== 1 ? "s" : ""}
+        </div>
+      </div>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         {isEditing ? (
           <div className="flex items-center space-x-2 flex-grow" onClick={(e) => e.stopPropagation()}>
