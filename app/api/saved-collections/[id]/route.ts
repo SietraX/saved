@@ -19,9 +19,11 @@ export async function PATCH(
 
   const { name } = await req.json();
 
+  const now = new Date().toISOString();
+
   const { data, error } = await supabase
     .from("saved_collections")
-    .update({ name })
+    .update({ name, updated_at: now })
     .eq("id", params.id)
     .eq("user_id", token.sub)
     .select()

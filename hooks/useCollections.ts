@@ -8,6 +8,7 @@ interface SavedCollection {
   id: string;
   name: string;
   created_at: string;
+  updated_at: string; // Add this line
   videoCount: number;
   display_order?: number;
   thumbnailUrl: string;
@@ -48,8 +49,9 @@ export function useCollections() {
         const updatedCollection = await response.json();
         mutate(
           collections?.map((c) =>
-            c.id === id ? { ...updatedCollection, videoCount: c.videoCount } : c
-          )
+            c.id === id ? { ...c, ...updatedCollection, name: name.trim() } : c
+          ),
+          false
         );
         return updatedCollection;
       }

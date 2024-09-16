@@ -127,7 +127,7 @@ export default function SavedCollections() {
         <AdvancedSearchButton onClick={handleAdvancedSearchClick} />
       </div>
       <CollectionList
-        collections={collections.map((collection) => ({
+        collections={(collections ?? []).map((collection) => ({
           ...collection,
           thumbnailUrl: collection.thumbnailUrl || "/default-playlist-image.png"
         }))}

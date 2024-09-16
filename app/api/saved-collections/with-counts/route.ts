@@ -44,14 +44,23 @@ export async function GET(req: NextRequest) {
         let thumbnailUrl = "/default-playlist-image.png";
 
         if (video && video.thumbnail_url) {
-          // Try to get the highest quality thumbnail
           thumbnailUrl = video.thumbnail_url.replace('/default.', '/maxresdefault.');
         }
+
+        // Get the last updated date
+        const { data: lastUpdated } = await supabase
+          .from("saved_collection_videos")
+          .select("created_at")
+          .eq("collection_id", collection.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
 
         return {
           ...collection,
           videoCount: count || 0,
-          thumbnailUrl
+          thumbnailUrl,
+          last_updated: collection.updated_at || collection.created_at
         };
       })
     );
