@@ -225,7 +225,8 @@ export const AdvancedSearchModal = ({
   };
 
   const highlightMatch = (text: string, searchTerm: string) => {
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    const searchWords = searchTerm.split(' ');
+    const regex = new RegExp(`(${searchWords.join('|')})`, 'gi');
     return text.split(regex).map((part, index) => 
       regex.test(part) ? <mark key={index} className="bg-yellow-200">{part}</mark> : part
     );
