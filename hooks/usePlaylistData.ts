@@ -95,19 +95,22 @@ export function usePlaylistData(
         } else if (type === "saved") {
           response = await fetch(`/api/saved-collections/${playlistId}`);
         } else if (type === "liked") {
+          // Handle liked videos differently
           setPlaylist({
             id: "liked",
             snippet: {
               title: "Liked Videos",
               description: "Your liked videos from YouTube",
               thumbnails: {}, // Initialize thumbnails as an empty object
+              publishedAt: new Date().toISOString(), // Set the current date as a placeholder
             },
             contentDetails: {
               itemCount: 0,
             },
           });
-          return;
+          return; // Exit the function early for liked videos
         }
+
         if (!response?.ok) {
           throw new Error(`HTTP error! status: ${response?.status}`);
         }
@@ -120,6 +123,7 @@ export function usePlaylistData(
               title: data.name,
               description: "Your saved collection",
               thumbnails: data.thumbnails || {}, // Ensure thumbnails are set
+              publishedAt: data.updated_at || data.created_at, // Use updated_at if available, otherwise fall back to created_at
             },
             contentDetails: {
               itemCount: data.videoCount || 0,

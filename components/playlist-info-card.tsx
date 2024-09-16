@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Play, Shuffle } from "lucide-react";
 import { PlaylistDetailsProps } from "@/types/index";
+import { useTimeAgo } from "@/hooks/useTimeAgo";
 
 interface PlaylistInfoCardProps {
   playlist: PlaylistDetailsProps;
@@ -28,6 +29,8 @@ export const PlaylistInfoCard = ({ playlist, type, priority = false }: PlaylistI
   const privacyStatus = playlist.status?.privacyStatus || "unknown";
   const itemCount = playlist.contentDetails?.itemCount || 0;
   const description = playlist.snippet?.description || "";
+  const publishedAt = playlist.snippet?.publishedAt || new Date().toISOString();
+  const timeAgo = useTimeAgo(publishedAt);
 
   return (
     <Card className="sticky top-4">
@@ -56,7 +59,7 @@ export const PlaylistInfoCard = ({ playlist, type, priority = false }: PlaylistI
         )}
         <p className="text-sm text-gray-500 mb-4 flex-shrink-0">
           {type !== "liked" && privacyStatus !== "unknown" && `${privacyStatus} • `}
-          {itemCount} videos
+          {itemCount} videos • Last updated: {timeAgo}
         </p>
         <div className="flex gap-2 mb-4 flex-shrink-0">
           <Button className="flex-1">

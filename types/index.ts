@@ -32,7 +32,7 @@ export type SupabaseVideoProps = {
 
 export type PlaylistVideoProps = YoutubeVideoProps | SupabaseVideoProps;
 
-export type PlaylistDetailsProps = {
+export interface PlaylistDetailsProps {
   id: string;
   snippet: {
     title: string;
@@ -43,14 +43,15 @@ export type PlaylistDetailsProps = {
       };
     };
     channelTitle?: string;
-  };
-  status?: {
-    privacyStatus?: "private" | "public" | "unlisted";
+    publishedAt?: string; // Add this line
   };
   contentDetails?: {
-    itemCount?: number;
+    itemCount: number;
   };
-};
+  status?: {
+    privacyStatus: PrivacyStatus;
+  };
+}
 
 export type FilterType = "all" | "videos" | "shorts";
 
@@ -64,6 +65,7 @@ export interface Playlist {
     thumbnails: {
       medium: { url: string };
     };
+    publishedAt?: string; // Add this line if it's not already there
   };
   status: {
     privacyStatus: PrivacyStatus;
