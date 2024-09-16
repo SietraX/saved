@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AddToCollectionModal } from "@/components/add-to-collection-modal";
+import { getTimeAgo } from "@/utils/timeAgo"; // Add this import at the top of the file
 
 export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelete, collectionId }: VideoItemProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -126,6 +127,10 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
     return null;
   };
 
+  const getTimeAgoString = () => {
+    return getTimeAgo(getPublishedAt());
+  };
+
   return (
     <>
       <div
@@ -184,7 +189,7 @@ export const VideoItem = React.memo(({ video, type, filterType, onClick, onDelet
               <p className="text-xs text-gray-800">
                 {getChannelTitle()}
                 {getViewCount() && ` • ${getViewCount()} views`}
-                {` • ${new Date(getPublishedAt()).toLocaleDateString()}`}
+                {` • ${getTimeAgoString()}`} {/* Updated this line */}
               </p>
             </div>
             <DropdownMenu>

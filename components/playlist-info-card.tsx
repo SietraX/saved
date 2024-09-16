@@ -59,7 +59,8 @@ export const PlaylistInfoCard = ({ playlist, type, priority = false }: PlaylistI
         )}
         <p className="text-sm text-gray-500 mb-4 flex-shrink-0">
           {type !== "liked" && privacyStatus !== "unknown" && `${privacyStatus} • `}
-          {itemCount} videos • Last updated: {timeAgo}
+          {itemCount} videos
+          {type !== "liked" && ` • Last updated: ${timeAgo}`}
         </p>
         <div className="flex gap-2 mb-4 flex-shrink-0">
           <Button className="flex-1">
