@@ -63,6 +63,10 @@ export function usePlaylistData(
             ? {
                 ...prev,
                 contentDetails: { itemCount: normalizedVideos.length },
+                snippet: {
+                  ...prev.snippet,
+                  thumbnails: normalizedVideos[0]?.snippet?.thumbnails || prev.snippet.thumbnails,
+                },
               }
             : null
         );
@@ -96,6 +100,7 @@ export function usePlaylistData(
             snippet: {
               title: "Liked Videos",
               description: "Your liked videos from YouTube",
+              thumbnails: {}, // Initialize thumbnails as an empty object
             },
             contentDetails: {
               itemCount: 0,
@@ -114,6 +119,7 @@ export function usePlaylistData(
             snippet: {
               title: data.name,
               description: "Your saved collection",
+              thumbnails: data.thumbnails || {}, // Ensure thumbnails are set
             },
             contentDetails: {
               itemCount: data.videoCount || 0,

@@ -11,8 +11,18 @@ interface PlaylistInfoCardProps {
 }
 
 export const PlaylistInfoCard = ({ playlist, type, priority = false }: PlaylistInfoCardProps) => {
-  const getImageUrl = (playlist: PlaylistDetailsProps) => {
-    return playlist.snippet?.thumbnails?.medium?.url || "/default-playlist-image.png";
+  const getImageUrl = (playlist: PlaylistDetailsProps, type: "youtube" | "saved" | "liked") => {
+    const defaultImage = "/default-playlist-image.png";
+    const itemCount = playlist.contentDetails?.itemCount || 0;
+
+    if (itemCount > 0) {
+      // If there's at least one video, use its thumbnail
+      const imageUrl = playlist.snippet?.thumbnails?.medium?.url || defaultImage;
+      return imageUrl;
+    } else {
+      // If there are no videos, use the default image
+      return defaultImage;
+    }
   };
 
   const privacyStatus = playlist.status?.privacyStatus || "unknown";
@@ -24,7 +34,7 @@ export const PlaylistInfoCard = ({ playlist, type, priority = false }: PlaylistI
       <CardContent className="p-4 flex flex-col">
         <div className="relative aspect-video mb-4 flex-shrink-0">
           <Image
-            src={getImageUrl(playlist)}
+            src={getImageUrl(playlist, type)}
             alt={playlist.snippet?.title || "Playlist"}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
