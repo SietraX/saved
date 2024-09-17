@@ -183,8 +183,7 @@ export const Playlists = () => {
               </div>
               <CardContent className="youtube-card-content flex-grow">
                 <h3 className="youtube-card-title">{playlist.snippet.title}</h3>
-                <p className="text-sm text-gray-500">Last updated: {playlist.timeAgo}</p>
-                <p className="text-sm">{playlist.contentDetails.itemCount} videos</p>
+                <p className="text-sm pt-1 text-gray-500">Last updated: {playlist.timeAgo}</p>
               </CardContent>
               <CardFooter className="youtube-card-privacy">
                 {getPrivacyIcon(playlist.status.privacyStatus)}

@@ -124,3 +124,11 @@ export interface SavedCollectionProps {
   created_at: string;
   videoCount: number;
 }
+
+export interface CheckVideoResponse {
+  collectionsWithVideo: string[];
+}
+
+export interface ApiError {
+  message: string;
+}

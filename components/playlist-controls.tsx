@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { FilterType } from "@/types/index";
 import { AdvancedSearchButton } from "@/components/advanced-search-button";
@@ -99,14 +100,19 @@ export const PlaylistControls: React.FC<PlaylistControlsProps> = ({
       }
     } catch (error) {
       console.error("Error adding video:", error);
-      setError(error instanceof Error ? error.message : "Failed to add video. Please try again.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to add video. Please try again."
+      );
     } finally {
       setIsAddingVideo(false);
     }
   };
 
   const extractVideoId = (url: string) => {
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const regex =
+      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
@@ -122,9 +128,13 @@ export const PlaylistControls: React.FC<PlaylistControlsProps> = ({
           <DialogTrigger asChild>
             <Button className="mb-4">Add Video</Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
+          <DialogContent aria-describedby="dialog-description">
+            <DialogHeader id="dialog-description">
               <DialogTitle>Add Video to Collection</DialogTitle>
+              <DialogDescription>
+                Enter the URL of the YouTube video you want to add to your
+                collection.
+              </DialogDescription>
             </DialogHeader>
             <Input
               type="text"
