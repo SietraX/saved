@@ -1,6 +1,5 @@
 # SAVED - Advanced YouTube Video Search and Collection Manager
-
-![SAVED Logo](path_to_logo_image)
+<img width="50" src="https://github.com/user-attachments/assets/164837a9-924b-4511-bd10-4b2b3ef6f11e" alt="SAVED" title="SAVED"/> 
 
 ## Project Overview
 
@@ -64,9 +63,115 @@ The search results display:
 
 Users can click on a timestamp to jump directly to that moment in the video, making it easy to find specific content within long videos or across multiple videos in their collection.
 
+## Pages
+
+### Welcome Screen
+![Welcome Screen](path_to_welcome_screen_screenshot)
+
+The landing page introduces users to the SAVED platform. It displays a welcome message and provides options to sign in with Google or access collections for authenticated users.
+
+### Saved Collections
+![Saved Collections](path_to_saved_collections_screenshot)
+
+This page displays the user's custom collections. Users can:
+- View all their created collections
+- Create new collections
+- Edit existing collections
+- Delete collections
+- Reorder collections
+- Access the advanced search functionality
+
+### YouTube Collections
+![YouTube Collections](path_to_youtube_collections_screenshot)
+
+This page provides a tabbed interface for managing various YouTube content:
+
+1. **Playlists Tab**
+   - Displays the user's YouTube playlists
+   - Allows cloning of playlists to saved collections
+   - Provides playlist information and video counts
+
+2. **Liked Videos Tab**
+   - Shows videos the user has liked on YouTube
+   - Allows adding liked videos to saved collections
+
+3. **Watch Later Tab**
+   - Displays videos added to the user's Watch Later list
+   - Enables adding these videos to saved collections
+
+### Playlist View
+![Playlist View](path_to_playlist_view_screenshot)
+
+When a user selects a specific playlist, this page shows:
+- List of videos in the playlist
+- Options to add individual videos to saved collections
+- Basic video information (title, thumbnail, etc.)
+
+### Advanced Search
+![Advanced Search](path_to_advanced_search_screenshot)
+
+The advanced search feature allows users to:
+- Search across all their collections or select specific ones
+- Find videos by title, description, or transcript content
+- View search results with relevant timestamps
+- Jump directly to specific moments in videos based on search results
+
+### Collection Details
+![Collection Details](path_to_collection_details_screenshot)
+
+This page shows the contents of a specific saved collection:
+- List of videos in the collection
+- Options to remove videos from the collection
+- Ability to play videos directly from this page
+
 ## Getting Started
 
-[... rest of the Getting Started section remains the same ...]
+### Prerequisites
+
+- Node.js (v14 or later)
+- Python (v3.7 or later)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+   ```
+   git clone https://github.com/your-username/saved.git
+   cd saved
+   ```
+
+2. Install frontend dependencies
+   ```
+   npm install
+   # or
+   yarn install
+   ```
+
+3. Set up environment variables
+   Create a `.env.local` file in the root directory and add the necessary environment variables (Supabase, Google OAuth, etc.)
+
+4. Run the development server
+   ```
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+5. Set up the Python backend
+   ```
+   cd python_backend
+   python -m venv venv
+   venv/Scripts/activate  # On Windows
+   source venv/bin/activate  # On macOS/Linux
+   pip install -r requirements.txt
+   ```
+
+6. Run the FastAPI server
+   ```
+   python transcript_server.py
+   ```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Project Structure
 
