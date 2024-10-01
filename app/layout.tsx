@@ -7,6 +7,11 @@ import { SupabaseProvider } from "@/components/supabase-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const metadata = {
+  title: "SAVED | Advanced YouTube Video Search and Collection Manager",
+  description: "Search across your YouTube collections, find specific moments in videos, and organize your content efficiently.",
+};
+
 export default function RootLayout({
   children,
 }: {
