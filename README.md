@@ -1,5 +1,7 @@
-# SAVED - Advanced YouTube Video Search and Collection Manager
-<img width="50" src="https://github.com/user-attachments/assets/164837a9-924b-4511-bd10-4b2b3ef6f11e" alt="SAVED" title="SAVED"/> 
+# SAVED - Advanced YouTube Video Search and Collection Manager <img width="50" src="https://github.com/user-attachments/assets/164837a9-924b-4511-bd10-4b2b3ef6f11e" alt="SAVED" title="SAVED"/> 
+
+
+![Saved - Advanced Search](https://github.com/user-attachments/assets/55c7131a-298f-40c4-aea9-3f556e0ecbb7)
 
 ## Project Overview
 
@@ -66,12 +68,10 @@ Users can click on a timestamp to jump directly to that moment in the video, mak
 ## Pages
 
 ### Welcome Screen
-![Welcome Screen](path_to_welcome_screen_screenshot)
 
 The landing page introduces users to the SAVED platform. It displays a welcome message and provides options to sign in with Google or access collections for authenticated users.
 
 ### Saved Collections
-![Saved Collections](path_to_saved_collections_screenshot)
 
 This page displays the user's custom collections. Users can:
 - View all their created collections
@@ -82,7 +82,6 @@ This page displays the user's custom collections. Users can:
 - Access the advanced search functionality
 
 ### YouTube Collections
-![YouTube Collections](path_to_youtube_collections_screenshot)
 
 This page provides a tabbed interface for managing various YouTube content:
 
@@ -100,7 +99,6 @@ This page provides a tabbed interface for managing various YouTube content:
    - Enables adding these videos to saved collections
 
 ### Playlist View
-![Playlist View](path_to_playlist_view_screenshot)
 
 When a user selects a specific playlist, this page shows:
 - List of videos in the playlist
@@ -108,7 +106,6 @@ When a user selects a specific playlist, this page shows:
 - Basic video information (title, thumbnail, etc.)
 
 ### Advanced Search
-![Advanced Search](path_to_advanced_search_screenshot)
 
 The advanced search feature allows users to:
 - Search across all their collections or select specific ones
@@ -117,7 +114,6 @@ The advanced search feature allows users to:
 - Jump directly to specific moments in videos based on search results
 
 ### Collection Details
-![Collection Details](path_to_collection_details_screenshot)
 
 This page shows the contents of a specific saved collection:
 - List of videos in the collection
